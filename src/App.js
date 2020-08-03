@@ -12,6 +12,7 @@ import Dashboard from "./containers/Dashboard";
 //>>Product
 import ProductList from "./containers/Product/ProductList";
 import ProductAdd from "./containers/Product/ProductAdd";
+import ProductEdit from "./containers/Product/ProductEdit";
 //>>Category
 import CategoryList from "./containers/Category/CategoryList";
 //>>Order
@@ -44,6 +45,12 @@ const App = () => {
             {/* Product */}
             <Route exact path="/products" component={ProductList}></Route>
             <Route exact path="/products-add" component={ProductAdd}></Route>
+            <Route
+              exact
+              path="/products-edit/:id"
+              component={ProductEdit}
+            ></Route>
+
             {/* Category */}
             <Route exact path="/categories" component={CategoryList}></Route>
             {/* Order */}

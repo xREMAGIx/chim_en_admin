@@ -11,7 +11,7 @@ export const productService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `${backendUrl}/api/products` : url;
+  const params = url === null ? `/api/products/` : url;
 
   return await axios.get(params).then(handleResponse);
 }
@@ -58,6 +58,7 @@ async function add(product, image) {
   //     console.log(error);
   //   }
   // } else {
+  console.log(body);
   return await axios
     .post("/api/products/", body, requestConfig)
     .then(handleResponse);
@@ -65,61 +66,64 @@ async function add(product, image) {
 }
 
 async function update(id, product, image, delImage) {
-  // const imageData = new FormData();
+  const imageData = new FormData();
 
-  // for (let i = 0; i < image.length; i++)
-  //   imageData.append("image", image[i].img);
+  for (let i = 0; i < image.length; i++)
+    imageData.append("images", image[i].img);
 
-  // console.log("image data " + imageData);
+  imageData.append("product", id);
 
   const requestConfig = {
     headers: {
-      //authHeader(),
       "Content-Type": "application/json",
     },
   };
 
   const body = JSON.stringify(product);
+  console.log(body);
 
-  // const requestConfig1 = {
-  //   // headers: authHeader()
-  // };
+  if (delImage.length > 0) {
+    const imageRequestConfig = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: {
+        ids: delImage,
+      },
+    };
+    try {
+      await axios.delete(`/api/products/images`, imageRequestConfig);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-  // for (let i = 0; i < delImage.length; i++)
-  //   try {
-  //     await axios.delete(
-  //       "/api/products/" + id + "/image/" + delImage[i],
-  //       imageData,
-  //       requestConfig1
-  //     );
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
+  if (imageData.get("images")) {
+    try {
+      await axios
+        .put(`/api/products/${id}/`, body, requestConfig)
+        .then(handleResponse);
+    } catch (error) {
+      console.log(error);
+    }
 
-  // if (imageData.get("image")) {
-  //   try {
-  //     await axios.put(`/api/products/${id}`, body, requestConfig);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-
-  //   const configFormData = {
-  //     headers: {
-  //       "Content-Type": "multipart/form-data",
-  //     },
-  //   };
-  //   try {
-  //     return await axios
-  //       .put("/api/products/" + id + "/image", imageData, configFormData)
-  //       .then(handleResponse);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // } else {
-  return await axios
-    .put(`/api/products/${id}/`, body, requestConfig)
-    .then(handleResponse);
-  // }
+    const configFormData = {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    };
+    try {
+      return await axios
+        .post("/api/products/images", imageData, configFormData)
+        .then(handleResponse);
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    return await axios
+      .put(`/api/products/${id}/`, body, requestConfig)
+      .then(handleResponse);
+  }
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript

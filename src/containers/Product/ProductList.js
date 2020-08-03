@@ -1,5 +1,5 @@
 //Standard Modules
-import React from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { fade, lighten, makeStyles } from "@material-ui/core/styles";
@@ -39,6 +39,10 @@ import CardContent from "@material-ui/core/CardContent";
 
 //Components
 import AdminLayout from "../../components/Layout";
+
+//Redux
+import { useDispatch, useSelector } from "react-redux";
+import { productActions } from "../../actions";
 
 //Fake Data
 function createData(image, sku, name, price, categories, status, date) {
@@ -423,19 +427,35 @@ const useStyles = makeStyles((theme) => ({
       color: theme.palette.secondary.dark,
     },
   },
+  status: {
+    borderRadius: "10px",
+    color: "white",
+    padding: theme.spacing(1),
+  },
+  available: {
+    backgroundColor: theme.palette.success.main,
+  },
+  unavailable: {
+    backgroundColor: theme.palette.error.main,
+  },
 }));
 
 export default function ProductList() {
   //UI Hook
   const classes = useStyles();
 
-  //Custom Hooks
+  //Redux Hook
+  const dispatch = useDispatch();
+  const products = useSelector((state) => state.products);
+
+  //Table Hooks
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  //Table functions
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -480,14 +500,21 @@ export default function ProductList() {
     setPage(0);
   };
 
-  const handleChipClick = (e) => {
-    console.log(e.currentTarget.id);
-  };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   const emptyRows =
     rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+  //Chip function
+  const handleChipClick = (e) => {
+    console.log(e.currentTarget.id);
+  };
+
+  //Main functions
+  //>>load product
+  useEffect(() => {
+    dispatch(productActions.getAll());
+  }, [dispatch]);
 
   return (
     <AdminLayout>
@@ -551,7 +578,7 @@ export default function ProductList() {
                   rowCount={rows.length}
                 />
                 <TableBody>
-                  {stableSort(rows, getComparator(order, orderBy))
+                  {stableSort(products.items, getComparator(order, orderBy))
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row, index) => {
                       const isItemSelected = isSelected(index);
@@ -573,15 +600,21 @@ export default function ProductList() {
                               inputProps={{ "aria-labelledby": labelId }}
                             />
                           </TableCell>
+
                           <TableCell>
                             <img
                               height={48}
                               width={48}
-                              src={row.image}
+                              src={
+                                row.images.length > 0
+                                  ? row.images[0].image
+                                  : null
+                              }
                               alt="No data"
                             ></img>
                           </TableCell>
-                          <TableCell>{row.sku}</TableCell>
+
+                          <TableCell>{row.id}</TableCell>
                           <TableCell
                             style={{
                               maxWidth: "10vw",
@@ -595,27 +628,54 @@ export default function ProductList() {
                               <Tooltip
                                 title={
                                   <Typography variant="body2">
-                                    {row.name}
+                                    {row.title}
                                   </Typography>
                                 }
                               >
                                 <Typography variant="body2" noWrap>
-                                  {row.name}
+                                  {row.title}
                                 </Typography>
                               </Tooltip>
                             </Grid>
                           </TableCell>
-                          <TableCell align="right">{row.price}</TableCell>
-                          <TableCell>{row.categories}</TableCell>
-                          <TableCell>{row.status}</TableCell>
                           <TableCell align="right">
-                            {dateFormat(row.date)}
+                            {row.price.toLocaleString()}
+                          </TableCell>
+                          <TableCell>{row.categories}</TableCell>
+                          <TableCell>
+                            <Typography
+                              display="inline"
+                              variant="body2"
+                              className={clsx({
+                                [classes.status]: true,
+                                [classes.available]: row.active,
+                                [classes.unavailable]: !row.active,
+                              })}
+                            >
+                              {row.active ? "Available" : "Unavailable"}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="body2" display="block">
+                              {dateFormat(row.updated)}
+                            </Typography>
+                            <Typography
+                              color="textSecondary"
+                              variant="body2"
+                              display="block"
+                            >
+                              {dateFormat(row.created_at)}
+                            </Typography>
                           </TableCell>
                           <TableCell align="right">
                             <Grid container justify="flex-end">
                               <Grid item>
                                 <Tooltip title="Edit" aria-label="edit">
-                                  <IconButton aria-label="edit">
+                                  <IconButton
+                                    component={Link}
+                                    to={`/products-edit/${row.id}`}
+                                    aria-label="edit"
+                                  >
                                     <EditIcon />
                                   </IconButton>
                                 </Tooltip>

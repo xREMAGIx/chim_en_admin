@@ -4,6 +4,9 @@ const initialState = {
   loading: true,
   items: [],
   item: [],
+  count: null,
+  next: null,
+  previous: null,
 };
 
 export function products(state = initialState, action) {
@@ -19,6 +22,9 @@ export function products(state = initialState, action) {
         ...state,
         loading: false,
         items: action.products.results,
+        count: action.products.count,
+        next: action.products.next,
+        previous: action.products.previous,
       };
     case productConstants.GETALL_FAILURE:
       return {
@@ -44,6 +50,7 @@ export function products(state = initialState, action) {
     case productConstants.ADD_REQUEST:
       return {
         ...state,
+        loading: true,
       };
     case productConstants.ADD_SUCCESS:
       return {

@@ -1,5 +1,5 @@
 export * from "./product.constants";
 
 //const backendUrl = "https://nextjs-eshop-backend.herokuapp.com";
-const backendUrl = "http://localhost:5000";
+const backendUrl = "http://127.0.0.1:8000";
 export default backendUrl;

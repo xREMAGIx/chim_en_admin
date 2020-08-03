@@ -1,6 +1,6 @@
 //Standard Modules
 import React, { useState, useEffect } from "react";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
@@ -18,6 +18,9 @@ import ExpandMore from "@material-ui/icons/ExpandMore";
 import Collapse from "@material-ui/core/Collapse";
 import Paper from "@material-ui/core/Paper";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import GridList from "@material-ui/core/GridList";
+import GridListTile from "@material-ui/core/GridListTile";
+import GridListTileBar from "@material-ui/core/GridListTileBar";
 
 import { Editor } from "react-draft-wysiwyg";
 import { convertFromRaw, convertToRaw, EditorState } from "draft-js";
@@ -29,6 +32,8 @@ import AdminLayout from "../../components/Layout";
 //Redux
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../actions";
+
+const backendUrl = "http://127.0.0.1:8000";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -65,6 +70,26 @@ const useStyles = makeStyles((theme) => ({
     background: theme.palette.background.paper,
     boxShadow: theme.shadows[2],
   },
+  uploadRoot: {
+    margin: theme.spacing(1),
+  },
+  input: {
+    display: "none",
+  },
+  gridList: {
+    flexWrap: "nowrap",
+    // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+    transform: "translateZ(0)",
+    width: "100%",
+  },
+  gridListRoot: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    overflow: "hidden",
+    backgroundColor: theme.palette.background.paper,
+    border: "1px solid #ddd",
+  },
 }));
 
 //Image upload for editor
@@ -93,11 +118,12 @@ const statusOption = [
   { title: "Unavailable", value: false },
 ];
 
-export default function ProductAdd() {
+export default function ProductEdit(props) {
   const classes = useStyles();
 
   //Redux Hooks
   const dispatch = useDispatch();
+  const products = useSelector((state) => state.products);
 
   //Colapse
   const [openProductInfoCollapse, setOpenProductInfoCollapse] = useState(true);
@@ -119,6 +145,34 @@ export default function ProductAdd() {
     setEditorState(editorState);
   };
 
+  //Image
+  const [oldImage, setOldImage] = React.useState([{ images: [] }]);
+  const [image, setImage] = React.useState([]);
+  const [delImage, setDelImage] = React.useState([]);
+
+  const handleOnImageChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      let images = [];
+      for (let i = 0; i < event.target.files.length; i++) {
+        images.push({ id: i, img: event.target.files[i] });
+      }
+      setImage(images);
+    }
+  };
+
+  const onDeleteNew = (e) => {
+    let newImg = image.filter((_image) => image.id !== e.target.id * 1);
+    setImage(newImg);
+  };
+
+  const onDeleteBtn = (e) => {
+    setDelImage([...delImage, e.target.id * 1]);
+    setOldImage({
+      ...oldImage,
+      images: oldImage.images.filter((_image) => _image.id !== e.target.id * 1),
+    });
+  };
+
   //Main funtion
   const [formData, setFormData] = useState({
     sku: "",
@@ -127,17 +181,29 @@ export default function ProductAdd() {
     description: "",
     active: true,
     slug: "",
-    images: [],
   });
 
   const { sku, title, price, description, active, slug } = formData;
+
+  //>>Load Product Edit
+  useEffect(() => {
+    dispatch(productActions.getById(props.match.params.id));
+  }, [dispatch, props.match.params.id]);
+
+  //>>Put item to form data
+  useEffect(() => {
+    setFormData({ ...products.item, images: [] });
+    setOldImage({ images: products.item.images });
+  }, [products.item]);
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const onSubmit = async () => {
-    dispatch(productActions.add(formData));
+  const onSubmit = () => {
+    dispatch(
+      productActions.update(props.match.params.id, formData, image, delImage)
+    );
   };
 
   const keyPressed = (e) => {
@@ -145,8 +211,10 @@ export default function ProductAdd() {
   };
 
   useEffect(() => {
+    console.log("old", oldImage);
     console.log(formData);
-  }, [formData]);
+    console.log(delImage);
+  }, [delImage, formData]);
 
   return (
     <AdminLayout>
@@ -159,7 +227,7 @@ export default function ProductAdd() {
           <Link className={classes.link} to="/products">
             Product List
           </Link>
-          <Typography color="textPrimary">Product Add</Typography>
+          <Typography color="textPrimary">Product Edit</Typography>
         </Breadcrumbs>
 
         {/* Main */}
@@ -176,6 +244,89 @@ export default function ProductAdd() {
             <Collapse in={openProductInfoCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
                 <Grid container spacing={2} justify="center">
+                  {/* images */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <Grid
+                      container
+                      direction="row"
+                      alignItems="flex-start"
+                      justify="center"
+                    >
+                      <Grid item>
+                        <div className={classes.uploadRoot}>
+                          <input
+                            accept="image/*"
+                            className={classes.input}
+                            id="contained-button-file"
+                            multiple
+                            type="file"
+                            onChange={handleOnImageChange}
+                          />
+
+                          <label htmlFor="contained-button-file">
+                            <Button
+                              variant="contained"
+                              color="secondary"
+                              component="span"
+                            >
+                              Upload Images
+                            </Button>
+                          </label>
+                        </div>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <div className={classes.gridListRoot}>
+                          <GridList className={classes.gridList} cols={3.5}>
+                            {/* Old Images */}
+                            {oldImage.images &&
+                              oldImage.images.map((item, index) => (
+                                <GridListTile key={item.id}>
+                                  <img src={item.image} alt={"No data"} />
+                                  <GridListTileBar
+                                    title={item.id}
+                                    actionIcon={
+                                      <Button
+                                        id={item.id}
+                                        style={{ color: "red" }}
+                                        onClick={(e) => onDeleteBtn(e)}
+                                      >
+                                        <Typography id={item.id}>
+                                          Del
+                                        </Typography>
+                                      </Button>
+                                    }
+                                  />
+                                </GridListTile>
+                              ))}
+                            {/* New Images */}
+                            {image &&
+                              image.map((item) => (
+                                <GridListTile key={item.id}>
+                                  <img
+                                    src={URL.createObjectURL(item.img)}
+                                    alt={"No data"}
+                                  />
+                                  <GridListTileBar
+                                    title={item.img.name}
+                                    actionIcon={
+                                      <Button
+                                        id={item.id}
+                                        style={{ color: "red" }}
+                                        onClick={(e) => onDeleteNew(e)}
+                                      >
+                                        <Typography id={item.id}>
+                                          Del
+                                        </Typography>
+                                      </Button>
+                                    }
+                                  />
+                                </GridListTile>
+                              ))}
+                          </GridList>
+                        </div>
+                      </Grid>
+                    </Grid>
+                  </Grid>
                   {/* sku */}
                   <Grid item xs={12} sm={12} md={9}>
                     <TextField
@@ -183,7 +334,7 @@ export default function ProductAdd() {
                       fullWidth
                       label="SKU"
                       variant="outlined"
-                      value={sku}
+                      value={sku || ""}
                       name="sku"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
@@ -196,7 +347,7 @@ export default function ProductAdd() {
                       fullWidth
                       label="Product Name"
                       variant="outlined"
-                      value={title}
+                      value={title || ""}
                       name="title"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
@@ -209,7 +360,7 @@ export default function ProductAdd() {
                       fullWidth
                       label="Short Description"
                       variant="outlined"
-                      value={description}
+                      value={description || ""}
                       name="description"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
@@ -223,7 +374,7 @@ export default function ProductAdd() {
                       fullWidth
                       label="Price"
                       variant="outlined"
-                      value={price}
+                      value={price || ""}
                       name="price"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
@@ -353,8 +504,8 @@ export default function ProductAdd() {
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary">
-                  Add
+                <Button onClick={onSubmit} variant="contained" color="primary">
+                  Update
                 </Button>
               </Grid>
             </Grid>
