@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import draftToHtml from "draftjs-to-html";
 
 //UI Components
 import Typography from "@material-ui/core/Typography";
@@ -19,9 +21,11 @@ import Collapse from "@material-ui/core/Collapse";
 import Paper from "@material-ui/core/Paper";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 
-import { Editor } from "react-draft-wysiwyg";
-import { convertFromRaw, convertToRaw, EditorState } from "draft-js";
-import "../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+// import { Editor } from "react-draft-wysiwyg";
+// import { convertFromRaw, convertToRaw, EditorState } from "draft-js";
+// import "../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+
+import { Editor } from "@tinymce/tinymce-react";
 
 //Components
 import AdminLayout from "../../components/Layout";
@@ -68,24 +72,26 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 //Image upload for editor
-function uploadImageCallBack(file) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://api.imgur.com/3/image");
-    xhr.setRequestHeader("Authorization", "");
-    const data = new FormData();
-    data.append("image", file);
-    xhr.send(data);
-    xhr.addEventListener("load", () => {
-      const response = JSON.parse(xhr.responseText);
-      resolve(response);
-    });
-    xhr.addEventListener("error", () => {
-      const error = JSON.parse(xhr.responseText);
-      reject(error);
-    });
-  });
-}
+// async function uploadImageCallBack(file) {
+//   let imageData = new FormData();
+//   imageData.append("image", file);
+//   const configFormData = {
+//     headers: {
+//       "Content-Type": "multipart/form-data",
+//     },
+//   };
+
+//   try {
+//     const res = await axios.post(
+//       "/api/blog_images/",
+//       imageData,
+//       configFormData
+//     );
+//     return res.data;
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
 
 //Options
 const statusOption = [
@@ -111,12 +117,25 @@ export default function ProductAdd() {
   };
 
   //Editor
-  const [editorState, setEditorState] = React.useState(
-    EditorState.createEmpty()
-  );
+  // const [editorState, setEditorState] = React.useState(
+  //   EditorState.createEmpty()
+  // );
 
-  const onEditorStateChange = (editorState) => {
-    setEditorState(editorState);
+  // const onEditorStateChange = (editorState) => {
+  //   setEditorState(editorState);
+  // };
+
+  // const onSaveContent = () => {
+  //   setFormData({
+  //     ...formData,
+  //     full_description: draftToHtml(
+  //       convertToRaw(editorState.getCurrentContent())
+  //     ),
+  //   });
+  // };
+
+  const handleTinyEditorChange = (content, editor) => {
+    setFormData({ ...formData, full_description: content });
   };
 
   //Main funtion
@@ -127,26 +146,23 @@ export default function ProductAdd() {
     description: "",
     active: true,
     slug: "",
+    full_description: "",
     images: [],
   });
 
-  const { sku, title, price, description, active, slug } = formData;
+  const { sku, title, price, description, slug } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     dispatch(productActions.add(formData));
   };
 
   const keyPressed = (e) => {
     if (e.key === "Enter") onSubmit(e);
   };
-
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
 
   return (
     <AdminLayout>
@@ -202,6 +218,28 @@ export default function ProductAdd() {
                       onKeyPress={(e) => keyPressed(e)}
                     />
                   </Grid>
+                  {/* category */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <Autocomplete
+                      id="combo-box-category"
+                      fullWidth
+                      options={statusOption}
+                      value={
+                        formData.active ? statusOption[0] : statusOption[1]
+                      }
+                      onChange={(e, newValue) =>
+                        setFormData({ ...formData, active: newValue.value })
+                      }
+                      getOptionLabel={(option) => option.title}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Category"
+                          variant="outlined"
+                        />
+                      )}
+                    />
+                  </Grid>
                   {/* short Description */}
                   <Grid item xs={12} sm={12} md={9}>
                     <TextField
@@ -253,7 +291,7 @@ export default function ProductAdd() {
                   </Grid>
                   {/* content */}
                   <Grid item xs={12} sm={12} md={9}>
-                    <Editor
+                    {/* <Editor
                       editorClassName={classes.richEditor}
                       wrapperClassName="demo-wrapper"
                       toolbar={{
@@ -266,12 +304,111 @@ export default function ProductAdd() {
                         image: {
                           uploadCallback: uploadImageCallBack,
                           alt: { present: true, mandatory: true },
+                          previewImage: false,
                         },
                       }}
                       editorState={editorState}
                       onEditorStateChange={onEditorStateChange}
-                    />
+                    /> */}
                   </Grid>
+                  {/* save content btn */}
+                  {/* <Grid item xs={12} sm={12} md={9}>
+                    <Button
+                      onClick={onSaveContent}
+                      variant="contained"
+                      color="secondary"
+                    >
+                      Save Content
+                    </Button>
+                  </Grid> */}
+
+                  {/* other editor */}
+                  <Editor
+                    init={{
+                      selector: "textarea",
+                      menubar: false,
+                      plugins: [
+                        "advlist autolink lists link image charmap print preview hr anchor pagebreak",
+                        "searchreplace wordcount visualblocks visualchars code fullscreen",
+                        "insertdatetime media nonbreaking save table directionality",
+                        "emoticons template paste textpattern imagetools codesample toc",
+                      ],
+                      toolbar1:
+                        "undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media",
+                      toolbar2:
+                        "print preview media | forecolor backcolor emoticons | codesample",
+                      templates: [
+                        { title: "Test template 1", content: "Test 1" },
+                        { title: "Test template 2", content: "Test 2" },
+                      ],
+
+                      images_upload_url: "/",
+                      images_upload_handler: function (
+                        blobInfo,
+                        success,
+                        failure,
+                        progress
+                      ) {
+                        var xhr, formData;
+
+                        xhr = new XMLHttpRequest();
+                        xhr.withCredentials = false;
+                        xhr.open("POST", "/api/blog_images/");
+
+                        xhr.upload.onprogress = function (e) {
+                          progress((e.loaded / e.total) * 100);
+                        };
+
+                        xhr.onload = function () {
+                          var json;
+
+                          if (xhr.status < 200 || xhr.status >= 300) {
+                            failure("HTTP Error: " + xhr.status);
+                            return;
+                          }
+
+                          json = JSON.parse(xhr.responseText);
+
+                          if (!json || typeof json.data.location != "string") {
+                            failure("Invalid JSON: " + xhr.responseText);
+                            return;
+                          }
+
+                          success(json.data.location);
+                        };
+
+                        xhr.onerror = function () {
+                          failure(
+                            "Image upload failed due to a XHR Transport error. Code: " +
+                              xhr.status
+                          );
+                        };
+
+                        formData = new FormData();
+                        formData.append(
+                          "image",
+                          blobInfo.blob(),
+                          blobInfo.filename()
+                        );
+
+                        xhr.send(formData);
+                      },
+                      relative_urls: false,
+                      automatic_uploads: false,
+                    }}
+                    onEditorChange={handleTinyEditorChange}
+                  />
+
+                  {/* preview content */}
+                  {/* <Grid item xs={12} sm={12} md={9}>
+                    <textarea
+                      style={{ width: "100%", height: "30vh" }}
+                      disabled
+                      value={draftToHtml(
+                        convertToRaw(editorState.getCurrentContent())
+                      )}
+                    />
+                  </Grid> */}
                 </Grid>
               </Paper>
             </Collapse>
@@ -353,7 +490,7 @@ export default function ProductAdd() {
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary">
+                <Button onClick={onSubmit} variant="contained" color="primary">
                   Add
                 </Button>
               </Grid>

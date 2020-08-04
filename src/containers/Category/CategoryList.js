@@ -1,212 +1,520 @@
 //Standard Modules
-import React from "react";
-import { fade, makeStyles, withStyles } from "@material-ui/core/styles";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
+import clsx from "clsx";
+import { fade, lighten, makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 
 //UI Components
-import TreeView from "@material-ui/lab/TreeView";
-import Button from "@material-ui/core/Button";
-import TreeItem from "@material-ui/lab/TreeItem";
-import Collapse from "@material-ui/core/Collapse";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
+import TablePagination from "@material-ui/core/TablePagination";
+import TableRow from "@material-ui/core/TableRow";
+import TableSortLabel from "@material-ui/core/TableSortLabel";
+import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import Paper from "@material-ui/core/Paper";
-import SvgIcon from "@material-ui/core/SvgIcon";
-import Modal from "@material-ui/core/Modal";
-import Backdrop from "@material-ui/core/Backdrop";
-import Fade from "@material-ui/core/Fade";
+import Checkbox from "@material-ui/core/Checkbox";
+import IconButton from "@material-ui/core/IconButton";
+import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
-import Container from "@material-ui/core/Container";
-import TextField from "@material-ui/core/TextField";
+import Button from "@material-ui/core/Button";
+import DeleteIcon from "@material-ui/icons/Delete";
+import FilterListIcon from "@material-ui/icons/FilterList";
+import AddIcon from "@material-ui/icons/Add";
+import Hidden from "@material-ui/core/Hidden";
+import InputBase from "@material-ui/core/InputBase";
+import SearchIcon from "@material-ui/icons/Search";
+import Chip from "@material-ui/core/Chip";
+import EditIcon from "@material-ui/icons/Edit";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
+import Card from "@material-ui/core/Card";
+import CardMedia from "@material-ui/core/CardMedia";
+import CardActionArea from "@material-ui/core/CardActionArea";
+import Breadcrumbs from "@material-ui/core/Breadcrumbs";
+import CardContent from "@material-ui/core/CardContent";
 
 //Components
 import AdminLayout from "../../components/Layout";
 
-const useStyles = makeStyles((theme) => ({
+//Redux
+import { useDispatch, useSelector } from "react-redux";
+import { productActions } from "../../actions";
+
+//Fake Data
+function createData(image, sku, name, price, categories, status, date) {
+  return { image, sku, name, price, categories, status, date };
+}
+
+const rows = [
+  createData(
+    "https://source.unsplash.com/featured/?{recycle},{paper}",
+    1,
+    "Cupcake",
+    1000,
+    "Cloth",
+    "Available",
+    new Date()
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{recycle},{paper}",
+    1,
+    "Tao vang 2200v jajsd ldjalsdjlajdkljalsd jkajsdl",
+    1000,
+    "Cloth",
+    "Available",
+    new Date()
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{recycle},{paper}",
+    1,
+    "Cupcake",
+    1000,
+    "Cloth",
+    "Available",
+    new Date()
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{recycle},{paper}",
+    1,
+    "Cupcake",
+    1000,
+    "Cloth",
+    "Available",
+    new Date()
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{recycle},{paper}",
+    1,
+    "Cupcake",
+    1000,
+    "Cloth",
+    "Available",
+    new Date()
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{recycle},{paper}",
+    1,
+    "Cupcake",
+    1000,
+    "Cloth",
+    "Available",
+    new Date()
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{recycle},{paper}",
+    1,
+    "Cupcake",
+    1000,
+    "Cloth",
+    "Available",
+    new Date()
+  ),
+];
+
+const headCells = [
+  {
+    id: "image",
+    numeric: false,
+    disablePadding: false,
+    label: "Image",
+  },
+  { id: "sku", numeric: false, disablePadding: false, label: "SKU" },
+  { id: "name", numeric: false, disablePadding: false, label: "Name" },
+  { id: "price", numeric: true, disablePadding: false, label: "Price" },
+  {
+    id: "categories",
+    numeric: false,
+    disablePadding: false,
+    label: "Categories",
+  },
+  { id: "status", numeric: false, disablePadding: false, label: "Status" },
+  { id: "date", numeric: true, disablePadding: false, label: "Date" },
+  { id: "action", numeric: true, disablePadding: false, label: "Action" },
+];
+
+//Enhance Tablehead
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  return order === "desc"
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+function stableSort(array, comparator) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  return stabilizedThis.map((el) => el[0]);
+}
+
+function EnhancedTableHead(props) {
+  const {
+    classes,
+    onSelectAllClick,
+    order,
+    orderBy,
+    numSelected,
+    rowCount,
+    onRequestSort,
+  } = props;
+  const createSortHandler = (property) => (event) => {
+    onRequestSort(event, property);
+  };
+
+  return (
+    <TableHead>
+      <TableRow>
+        <TableCell padding="checkbox">
+          <Checkbox
+            indeterminate={numSelected > 0 && numSelected < rowCount}
+            checked={rowCount > 0 && numSelected === rowCount}
+            onChange={onSelectAllClick}
+            inputProps={{ "aria-label": "select all desserts" }}
+          />
+        </TableCell>
+        {headCells.map((headCell) => (
+          <TableCell
+            key={headCell.id}
+            align={headCell.numeric ? "right" : "left"}
+            padding={headCell.disablePadding ? "none" : "default"}
+            sortDirection={orderBy === headCell.id ? order : false}
+          >
+            <TableSortLabel
+              active={orderBy === headCell.id}
+              direction={orderBy === headCell.id ? order : "asc"}
+              onClick={createSortHandler(headCell.id)}
+            >
+              {headCell.label}
+              {orderBy === headCell.id ? (
+                <span className={classes.visuallyHidden}>
+                  {order === "desc" ? "sorted descending" : "sorted ascending"}
+                </span>
+              ) : null}
+            </TableSortLabel>
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+  );
+}
+
+EnhancedTableHead.propTypes = {
+  classes: PropTypes.object.isRequired,
+  numSelected: PropTypes.number.isRequired,
+  onRequestSort: PropTypes.func.isRequired,
+  onSelectAllClick: PropTypes.func.isRequired,
+  order: PropTypes.oneOf(["asc", "desc"]).isRequired,
+  orderBy: PropTypes.string.isRequired,
+  rowCount: PropTypes.number.isRequired,
+};
+
+//Custom Toolbar
+const useToolbarStyles = makeStyles((theme) => ({
   root: {
-    margin: theme.spacing(2),
-    flexGrow: 1,
-    maxWidth: 400,
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(1),
   },
-  treeItemTransitionFrom: {
-    opacity: 0,
-    transform: "translate3d(20px,0,0)",
+  highlight:
+    theme.palette.type === "light"
+      ? {
+          color: theme.palette.secondary.main,
+          backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+        }
+      : {
+          color: theme.palette.text.primary,
+          backgroundColor: theme.palette.secondary.dark,
+        },
+  title: {
+    flex: "1 1 100%",
   },
-  treeItemTransitionTo: {
-    opacity: 1,
-    transform: "translate3d(0,0,0)",
+  search: {
+    position: "relative",
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: fade(theme.palette.common.white, 0.15),
+    "&:hover": {
+      backgroundColor: fade(theme.palette.common.white, 0.25),
+    },
+    marginLeft: 0,
+    width: "100%",
+    [theme.breakpoints.up("sm")]: {
+      marginLeft: theme.spacing(1),
+      width: "auto",
+    },
   },
-  margin: {
+  searchIcon: {
+    padding: theme.spacing(0, 2),
+    height: "100%",
+    position: "absolute",
+    pointerEvents: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inputRoot: {
+    color: "inherit",
+  },
+  inputInput: {
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+    transition: theme.transitions.create("width"),
+    width: "12ch",
+    [theme.breakpoints.up("sm")]: {
+      width: "12ch",
+      "&:focus": {
+        width: "20ch",
+      },
+    },
+  },
+}));
+
+const EnhancedTableToolbar = (props) => {
+  const classes = useToolbarStyles();
+  const { numSelected } = props;
+
+  return (
+    <Toolbar
+      className={clsx(classes.root, {
+        [classes.highlight]: numSelected > 0,
+      })}
+    >
+      {numSelected > 0 ? (
+        <Typography
+          className={classes.title}
+          color="inherit"
+          variant="subtitle1"
+          component="div"
+        >
+          {numSelected} selected
+        </Typography>
+      ) : (
+        <Hidden smDown>
+          <Typography
+            className={classes.title}
+            variant="h6"
+            id="tableTitle"
+            component="div"
+          >
+            Products
+          </Typography>
+        </Hidden>
+      )}
+
+      {numSelected > 0 ? (
+        <Tooltip title="Delete">
+          <IconButton aria-label="delete">
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      ) : (
+        <Grid container alignItems="center" justify="flex-end" spacing={1}>
+          <Grid item>
+            <div className={classes.search}>
+              <div className={classes.searchIcon}>
+                <SearchIcon />
+              </div>
+              <InputBase
+                placeholder="Search…"
+                classes={{
+                  root: classes.inputRoot,
+                  input: classes.inputInput,
+                }}
+                inputProps={{ "aria-label": "search" }}
+              />
+            </div>
+          </Grid>
+          <Grid item>
+            <Hidden xsDown>
+              <Button
+                component={Link}
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                to="/products-add"
+              >
+                Create
+              </Button>
+            </Hidden>
+            <Hidden smUp>
+              <IconButton color="primary" aria-label="add-btn" component="span">
+                <AddIcon />
+              </IconButton>
+            </Hidden>
+          </Grid>
+          <Grid item>
+            <Tooltip title="Filter list">
+              <IconButton aria-label="filter list">
+                <FilterListIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+        </Grid>
+      )}
+    </Toolbar>
+  );
+};
+
+EnhancedTableToolbar.propTypes = {
+  numSelected: PropTypes.number.isRequired,
+};
+
+//Custom Functions
+function dateFormat(date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    // second: "numeric",
+    minute: "numeric",
+    hour: "numeric",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(date));
+}
+
+const useStyles = makeStyles((theme) => ({
+  paper: {
+    width: "100%",
+    marginBottom: theme.spacing(2),
+  },
+  table: {
+    minWidth: 750,
+  },
+  visuallyHidden: {
+    border: 0,
+    clip: "rect(0 0 0 0)",
+    height: 1,
+    margin: -1,
+    overflow: "hidden",
+    padding: 0,
+    position: "absolute",
+    top: 20,
+    width: 1,
+  },
+  cardRoot: {
+    // maxWidth: 345,
     margin: theme.spacing(1),
+  },
+  cardMedia: {
+    height: 0,
+    paddingTop: "75%", // 4:3
+  },
+  cardContent: {
+    padding: theme.spacing(1),
   },
   marginY: {
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
   },
   link: {
-    color: theme.palette.primary.main,
+    color: theme.palette.secondary.main,
     textDecoration: "none",
     "&:hover": {
-      color: theme.palette.primary.dark,
+      color: theme.palette.secondary.dark,
     },
   },
-  paper: {
-    width: "100%",
-    marginBottom: theme.spacing(2),
+  status: {
+    borderRadius: "10px",
+    color: "white",
+    padding: theme.spacing(1),
   },
-
-  modal: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+  available: {
+    backgroundColor: theme.palette.success.main,
   },
-  addPaper: {
-    backgroundColor: theme.palette.background.paper,
-    border: "2px solid #000",
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
+  unavailable: {
+    backgroundColor: theme.palette.error.main,
   },
 }));
 
-//Style for treeview
-function MinusSquare(props) {
-  return (
-    <SvgIcon fontSize="inherit" style={{ width: 14, height: 14 }} {...props}>
-      {/* tslint:disable-next-line: max-line-length */}
-      <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 11.023h-11.826q-.375 0-.669.281t-.294.682v0q0 .401.294 .682t.669.281h11.826q.375 0 .669-.281t.294-.682v0q0-.401-.294-.682t-.669-.281z" />
-    </SvgIcon>
-  );
-}
-
-function PlusSquare(props) {
-  return (
-    <SvgIcon fontSize="inherit" style={{ width: 14, height: 14 }} {...props}>
-      {/* tslint:disable-next-line: max-line-length */}
-      <path d="M22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0zM17.873 12.977h-4.923v4.896q0 .401-.281.682t-.682.281v0q-.375 0-.669-.281t-.294-.682v-4.896h-4.923q-.401 0-.682-.294t-.281-.669v0q0-.401.281-.682t.682-.281h4.923v-4.896q0-.401.294-.682t.669-.281v0q.401 0 .682.281t.281.682v4.896h4.923q.401 0 .682.281t.281.682v0q0 .375-.281.669t-.682.294z" />
-    </SvgIcon>
-  );
-}
-
-function CloseSquare(props) {
-  return (
-    <SvgIcon
-      className="close"
-      fontSize="inherit"
-      style={{ width: 14, height: 14 }}
-      {...props}
-    >
-      {/* tslint:disable-next-line: max-line-length */}
-      <path d="M17.485 17.512q-.281.281-.682.281t-.696-.268l-4.12-4.147-4.12 4.147q-.294.268-.696.268t-.682-.281-.281-.682.294-.669l4.12-4.147-4.12-4.147q-.294-.268-.294-.669t.281-.682.682-.281.696 .268l4.12 4.147 4.12-4.147q.294-.268.696-.268t.682.281 .281.669-.294.682l-4.12 4.147 4.12 4.147q.294.268 .294.669t-.281.682zM22.047 22.074v0 0-20.147 0h-20.12v0 20.147 0h20.12zM22.047 24h-20.12q-.803 0-1.365-.562t-.562-1.365v-20.147q0-.776.562-1.351t1.365-.575h20.147q.776 0 1.351.575t.575 1.351v20.147q0 .803-.575 1.365t-1.378.562v0z" />
-    </SvgIcon>
-  );
-}
-
-function TransitionComponent(props) {
-  const classes = useStyles();
-  //   const style = useSpring({
-  //     from: { opacity: 0, transform: "translate3d(20px,0,0)" },
-  //     to: {
-  //       opacity: props.in ? 1 : 0,
-  //       transform: `translate3d(${props.in ? 0 : 20}px,0,0)`,
-  //     },
-  //   });
-
-  return (
-    <div
-      // className={
-      //   props.in ? classes.treeItemTransitionTo : classes.treeItemTransitionFrom
-      // }
-      onEnter={classes.treeItemTransitionFrom}
-      onExited={classes.treeItemTransitionTo}
-    >
-      <Collapse {...props} />
-    </div>
-  );
-}
-
-TransitionComponent.propTypes = {
-  /**
-   * Show the component; triggers the enter or exit states
-   */
-  in: PropTypes.bool,
-};
-
-const StyledTreeItem = withStyles((theme) => ({
-  iconContainer: {
-    "& .close": {
-      opacity: 0.3,
-    },
-  },
-  group: {
-    marginLeft: 7,
-    paddingLeft: 18,
-    borderLeft: `1px dashed ${fade(theme.palette.text.primary, 0.4)}`,
-  },
-}))((props) => (
-  <TreeItem {...props} TransitionComponent={TransitionComponent} />
-));
-
-export default function CategoryList() {
+export default function ProductList() {
+  //UI Hook
   const classes = useStyles();
 
-  //Custom hooks
-  const [openAddModal, setOpenAddModal] = React.useState(false);
-  const [data, setData] = React.useState({
-    id: "root",
-    name: "Parent",
-    children: [
-      {
-        id: "1",
-        name: "Child - 1",
-      },
-      {
-        id: "3",
-        name: "Child - 3",
-        children: [
-          {
-            id: "4",
-            name: "Child - 4",
-          },
-        ],
-      },
-    ],
-  });
+  //Redux Hook
+  const dispatch = useDispatch();
+  const products = useSelector((state) => state.products);
 
-  //Handle functions of Add Modal
-  const handleAddModalOpen = () => {
-    setOpenAddModal(true);
+  //Table Hooks
+  const [order, setOrder] = React.useState("asc");
+  const [orderBy, setOrderBy] = React.useState("calories");
+  const [selected, setSelected] = React.useState([]);
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  //Table functions
+  const handleRequestSort = (event, property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
   };
 
-  const handleAddModalClose = () => {
-    setOpenAddModal(false);
+  const handleSelectAllClick = (event) => {
+    if (event.target.checked) {
+      const newSelecteds = rows.map((n) => n.name);
+      setSelected(newSelecteds);
+      return;
+    }
+    setSelected([]);
   };
 
-  const onSubmit = async () => {
-    //dispatch(categoryActions.add(formData));
+  const handleClick = (event, name) => {
+    const selectedIndex = selected.indexOf(name);
+    let newSelected = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selected, name);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selected.slice(1));
+    } else if (selectedIndex === selected.length - 1) {
+      newSelected = newSelected.concat(selected.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selected.slice(0, selectedIndex),
+        selected.slice(selectedIndex + 1)
+      );
+    }
+
+    setSelected(newSelected);
   };
 
-  const keyPressed = (e) => {
-    if (e.key === "Enter") onSubmit(e);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
   };
 
-  //Tree view function
-  const renderTree = (nodes) => (
-    <StyledTreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name}>
-      <Button
-        size="small"
-        variant="outlined"
-        color="primary"
-        className={classes.margin}
-        onClick={() => handleAddModalOpen()}
-      >
-        Add
-      </Button>
-      {Array.isArray(nodes.children)
-        ? nodes.children.map((node) => renderTree(node))
-        : null}
-    </StyledTreeItem>
-  );
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const isSelected = (name) => selected.indexOf(name) !== -1;
+
+  const emptyRows =
+    rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+  //Chip function
+  const handleChipClick = (e) => {
+    console.log(e.currentTarget.id);
+  };
+
+  //Main functions
+  //>>load product
+  useEffect(() => {
+    dispatch(productActions.getAll());
+  }, [dispatch]);
 
   return (
     <AdminLayout>
@@ -216,81 +524,259 @@ export default function CategoryList() {
           <Link className={classes.link} to="/">
             Dashboard
           </Link>
-          <Typography color="textPrimary">CategoryList</Typography>
+
+          <Typography color="textPrimary">Category List</Typography>
         </Breadcrumbs>
 
-        {/* CategoryList Treeview */}
+        {/* Product table */}
         <Paper className={classes.paper}>
-          <Typography className={classes.margin} variant="h6">
-            CategoryList
-          </Typography>
-          <Button onClick={() => console.log(data)}>Console</Button>
-          <TreeView
-            className={classes.root}
-            defaultExpanded={["root"]}
-            defaultCollapseIcon={<MinusSquare />}
-            defaultExpandIcon={<PlusSquare />}
-            defaultEndIcon={<CloseSquare />}
+          <EnhancedTableToolbar numSelected={selected.length} />
+          <Grid
+            style={{ marginLeft: 8, marginBottom: 16 }}
+            container
+            spacing={2}
           >
-            {renderTree(data)}
-          </TreeView>
-        </Paper>
+            <Grid item>
+              <Chip
+                id="available"
+                label="Available"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
+            <Grid item>
+              <Chip
+                id="unavailable"
+                label="Unavailable"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
+            <Grid item>
+              <Chip
+                id="discount"
+                label="Discount"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
+          </Grid>
 
-        {/* Add Modal */}
-        <Modal
-          aria-labelledby="transition-modal-title"
-          aria-describedby="transition-modal-description"
-          className={classes.modal}
-          open={openAddModal}
-          onClose={handleAddModalClose}
-          closeAfterTransition
-          BackdropComponent={Backdrop}
-          BackdropProps={{
-            timeout: 500,
-          }}
-        >
-          <Fade in={openAddModal}>
-            <div className={classes.addPaper}>
-              <Container maxWidth="md" className={classes.container}>
-                <Typography variant="h4" gutterBottom>
-                  Add new Category
-                </Typography>
-                <TextField
-                  fullWidth
-                  style={{ marginTop: "10px" }}
-                  label="Category name"
-                  id="outlined-name"
-                  variant="outlined"
-                  name="name"
-                  // value={name}
-                  // onChange={(e) => onChange(e)}
-                  onKeyPress={(e) => keyPressed(e)}
+          {/* Table Desktop version */}
+          <Hidden smDown>
+            <TableContainer>
+              <Table
+                className={classes.table}
+                aria-labelledby="tableTitle"
+                size={"small"}
+                aria-label="enhanced table"
+              >
+                <EnhancedTableHead
+                  classes={classes}
+                  numSelected={selected.length}
+                  order={order}
+                  orderBy={orderBy}
+                  onSelectAllClick={handleSelectAllClick}
+                  onRequestSort={handleRequestSort}
+                  rowCount={rows.length}
                 />
-                <Grid
-                  style={{ marginTop: "10px" }}
-                  container
-                  justify="center"
-                  spacing={5}
+                <TableBody>
+                  {stableSort(products.items, getComparator(order, orderBy))
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((row, index) => {
+                      const isItemSelected = isSelected(index);
+                      const labelId = `enhanced-table-checkbox-${index}`;
+
+                      return (
+                        <TableRow
+                          hover
+                          onClick={(event) => handleClick(event, index)}
+                          role="checkbox"
+                          aria-checked={isItemSelected}
+                          tabIndex={-1}
+                          key={index}
+                          selected={isItemSelected}
+                        >
+                          <TableCell padding="checkbox">
+                            <Checkbox
+                              checked={isItemSelected}
+                              inputProps={{ "aria-labelledby": labelId }}
+                            />
+                          </TableCell>
+
+                          <TableCell>
+                            <img
+                              height={48}
+                              width={48}
+                              src={
+                                row.images.length > 0
+                                  ? row.images[0].image
+                                  : null
+                              }
+                              alt="No data"
+                            ></img>
+                          </TableCell>
+
+                          <TableCell>{row.id}</TableCell>
+                          <TableCell
+                            style={{
+                              maxWidth: "10vw",
+                              whiteSpace: "normal",
+                              wordWrap: "break-word",
+                            }}
+                            scope="row"
+                            padding="none"
+                          >
+                            <Grid item xs zeroMinWidth>
+                              <Tooltip
+                                title={
+                                  <Typography variant="body2">
+                                    {row.title}
+                                  </Typography>
+                                }
+                              >
+                                <Typography variant="body2" noWrap>
+                                  {row.title}
+                                </Typography>
+                              </Tooltip>
+                            </Grid>
+                          </TableCell>
+                          <TableCell align="right">
+                            {row.price.toLocaleString()}
+                          </TableCell>
+                          <TableCell>{row.categories}</TableCell>
+                          <TableCell>
+                            <Typography
+                              display="inline"
+                              variant="body2"
+                              className={clsx({
+                                [classes.status]: true,
+                                [classes.available]: row.active,
+                                [classes.unavailable]: !row.active,
+                              })}
+                            >
+                              {row.active ? "Available" : "Unavailable"}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="body2" display="block">
+                              {dateFormat(row.updated)}
+                            </Typography>
+                            <Typography
+                              color="textSecondary"
+                              variant="body2"
+                              display="block"
+                            >
+                              {dateFormat(row.created_at)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Grid container justify="flex-end">
+                              <Grid item>
+                                <Tooltip title="Edit" aria-label="edit">
+                                  <IconButton
+                                    component={Link}
+                                    to={`/products-edit/${row.id}`}
+                                    aria-label="edit"
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </Grid>
+                              <Grid item>
+                                <Tooltip
+                                  title="Duplicate"
+                                  aria-label="duplicate"
+                                >
+                                  <IconButton aria-label="duplicate">
+                                    <FileCopyIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </Grid>
+                            </Grid>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 40 * emptyRows }}>
+                      <TableCell colSpan={6} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Hidden>
+
+          {/* Table Mobile version */}
+          <Hidden mdUp>
+            {rows
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((row, index) => (
+                <Card
+                  variant="outlined"
+                  className={classes.cardRoot}
+                  key={index}
                 >
-                  <Grid item>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={(e) => onSubmit(e)}
+                  <Grid container>
+                    <Grid item xs={3} container alignItems="center">
+                      <CardActionArea>
+                        <CardMedia
+                          className={classes.cardMedia}
+                          image={row.image}
+                          title={row.name}
+                        />
+                      </CardActionArea>
+                    </Grid>
+                    <Grid item xs={7}>
+                      <CardContent className={classes.cardContent}>
+                        <Typography gutterBottom variant="h6" component="h2">
+                          {row.name}
+                        </Typography>
+                        <Typography variant="body1" component="p" gutterBottom>
+                          Price: {row.price}
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          color="textPrimary"
+                          component="p"
+                          gutterBottom
+                        >
+                          Status: {row.status}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="textPrimary"
+                          component="p"
+                        >
+                          Categories: {row.categories}
+                        </Typography>
+                      </CardContent>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={2}
+                      container
+                      justify="flex-end"
+                      alignItems="flex-start"
                     >
-                      Add
-                    </Button>
+                      <IconButton aria-label="edit">
+                        <EditIcon />
+                      </IconButton>
+                    </Grid>
                   </Grid>
-                  <Grid item>
-                    <Button variant="contained" onClick={handleAddModalClose}>
-                      Cancel
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Container>
-            </div>
-          </Fade>
-        </Modal>
+                </Card>
+              ))}
+          </Hidden>
+
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={rows.length}
+            rowsPerPage={rowsPerPage}
+            labelRowsPerPage={"Rows:"}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+        </Paper>
       </React.Fragment>
     </AdminLayout>
   );

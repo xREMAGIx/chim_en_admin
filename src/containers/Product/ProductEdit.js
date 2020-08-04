@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 //UI Components
 import Typography from "@material-ui/core/Typography";
@@ -22,9 +23,12 @@ import GridList from "@material-ui/core/GridList";
 import GridListTile from "@material-ui/core/GridListTile";
 import GridListTileBar from "@material-ui/core/GridListTileBar";
 
-import { Editor } from "react-draft-wysiwyg";
-import { convertFromRaw, convertToRaw, EditorState } from "draft-js";
-import "../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+// import { Editor } from "react-draft-wysiwyg";
+// import { ContentState, convertToRaw, EditorState } from "draft-js";
+// import "../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+// import htmlToDraft from "html-to-draftjs";
+// import draftToHtml from "draftjs-to-html";
+import { Editor } from "@tinymce/tinymce-react";
 
 //Components
 import AdminLayout from "../../components/Layout";
@@ -93,23 +97,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 //Image upload for editor
-function uploadImageCallBack(file) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://api.imgur.com/3/image");
-    xhr.setRequestHeader("Authorization", "");
-    const data = new FormData();
-    data.append("image", file);
-    xhr.send(data);
-    xhr.addEventListener("load", () => {
-      const response = JSON.parse(xhr.responseText);
-      resolve(response);
-    });
-    xhr.addEventListener("error", () => {
-      const error = JSON.parse(xhr.responseText);
-      reject(error);
-    });
-  });
+async function uploadImageCallBack(file) {
+  let imageData = new FormData();
+  imageData.append("image", file);
+  const configFormData = {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
+
+  try {
+    const res = await axios.post(
+      "/api/blog_images/",
+      imageData,
+      configFormData
+    );
+    return res.data;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 //Options
@@ -137,12 +143,26 @@ export default function ProductEdit(props) {
   };
 
   //Editor
-  const [editorState, setEditorState] = React.useState(
-    EditorState.createEmpty()
-  );
+  // const [editorState, setEditorState] = React.useState(
+  //   EditorState.createEmpty()
+  // );
 
-  const onEditorStateChange = (editorState) => {
-    setEditorState(editorState);
+  // const onEditorStateChange = (editorState) => {
+  //   setEditorState(editorState);
+  // };
+
+  // //Save Editor to formData
+  // const onSaveContent = () => {
+  //   setFormData({
+  //     ...formData,
+  //     full_description: draftToHtml(
+  //       convertToRaw(editorState.getCurrentContent())
+  //     ),
+  //   });
+  // };
+
+  const handleTinyEditorChange = (content, editor) => {
+    setFormData({ ...formData, full_description: content });
   };
 
   //Image
@@ -183,7 +203,7 @@ export default function ProductEdit(props) {
     slug: "",
   });
 
-  const { sku, title, price, description, active, slug } = formData;
+  const { sku, title, price, description, full_description, slug } = formData;
 
   //>>Load Product Edit
   useEffect(() => {
@@ -194,6 +214,15 @@ export default function ProductEdit(props) {
   useEffect(() => {
     setFormData({ ...products.item, images: [] });
     setOldImage({ images: products.item.images });
+    // if (products.item.full_description) {
+    //   const contentBlock = htmlToDraft(products.item.full_description);
+    //   if (contentBlock) {
+    //     const contentState = ContentState.createFromBlockArray(
+    //       contentBlock.contentBlocks
+    //     );
+    //     setEditorState(EditorState.createWithContent(contentState));
+    //   }
+    // }
   }, [products.item]);
 
   const onChange = (e) => {
@@ -209,12 +238,6 @@ export default function ProductEdit(props) {
   const keyPressed = (e) => {
     if (e.key === "Enter") onSubmit(e);
   };
-
-  useEffect(() => {
-    console.log("old", oldImage);
-    console.log(formData);
-    console.log(delImage);
-  }, [delImage, formData]);
 
   return (
     <AdminLayout>
@@ -402,7 +425,7 @@ export default function ProductEdit(props) {
                       )}
                     />
                   </Grid>
-                  {/* content */}
+                  {/* content
                   <Grid item xs={12} sm={12} md={9}>
                     <Editor
                       editorClassName={classes.richEditor}
@@ -423,6 +446,93 @@ export default function ProductEdit(props) {
                       onEditorStateChange={onEditorStateChange}
                     />
                   </Grid>
+                  {/* save btn content */}
+                  {/* <Grid item xs={12} sm={12} md={9}>
+                    <Button
+                      onClick={onSaveContent}
+                      variant="contained"
+                      color="secondary"
+                    >
+                      Save Content
+                    </Button>
+                  </Grid> */}
+                  {/* tiny editor */}
+                  <Editor
+                    initialValue={full_description}
+                    init={{
+                      selector: "textarea",
+                      menubar: false,
+                      plugins: [
+                        "advlist autolink lists link image charmap print preview hr anchor pagebreak",
+                        "searchreplace wordcount visualblocks visualchars code fullscreen",
+                        "insertdatetime media nonbreaking save table directionality",
+                        "emoticons template paste textpattern imagetools codesample toc",
+                      ],
+                      toolbar1:
+                        "undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media",
+                      toolbar2:
+                        "print preview media | forecolor backcolor emoticons | codesample",
+                      templates: [
+                        { title: "Test template 1", content: "Test 1" },
+                        { title: "Test template 2", content: "Test 2" },
+                      ],
+
+                      images_upload_url: "/",
+                      images_upload_handler: function (
+                        blobInfo,
+                        success,
+                        failure,
+                        progress
+                      ) {
+                        var xhr, formData;
+
+                        xhr = new XMLHttpRequest();
+                        xhr.withCredentials = false;
+                        xhr.open("POST", "/api/blog_images/");
+
+                        xhr.upload.onprogress = function (e) {
+                          progress((e.loaded / e.total) * 100);
+                        };
+
+                        xhr.onload = function () {
+                          var json;
+
+                          if (xhr.status < 200 || xhr.status >= 300) {
+                            failure("HTTP Error: " + xhr.status);
+                            return;
+                          }
+
+                          json = JSON.parse(xhr.responseText);
+
+                          if (!json || typeof json.data.location != "string") {
+                            failure("Invalid JSON: " + xhr.responseText);
+                            return;
+                          }
+
+                          success(json.data.location);
+                        };
+
+                        xhr.onerror = function () {
+                          failure(
+                            "Image upload failed due to a XHR Transport error. Code: " +
+                              xhr.status
+                          );
+                        };
+
+                        formData = new FormData();
+                        formData.append(
+                          "image",
+                          blobInfo.blob(),
+                          blobInfo.filename()
+                        );
+
+                        xhr.send(formData);
+                      },
+                      relative_urls: false,
+                      automatic_uploads: false,
+                    }}
+                    onEditorChange={handleTinyEditorChange}
+                  />
                 </Grid>
               </Paper>
             </Collapse>
