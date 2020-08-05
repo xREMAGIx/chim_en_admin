@@ -1,5 +1,5 @@
 //Standard Modules
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -18,9 +18,19 @@ import ExpandMore from "@material-ui/icons/ExpandMore";
 import Collapse from "@material-ui/core/Collapse";
 import Paper from "@material-ui/core/Paper";
 import Autocomplete from "@material-ui/lab/Autocomplete";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 
-//Components
+//Custom Components
 import AdminLayout from "../../components/Layout";
+
+//Redux
+import { useDispatch, useSelector } from "react-redux";
+import { orderActions } from "../../actions";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -59,25 +69,106 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-//Options
-const statusOption = [
-  { title: "Pending", value: "pending" },
-  { title: "Processing", value: "processing" },
-  { title: "Complete", value: "Complete" },
+//Fake Data
+function createData(image, sku, name, price, quantity) {
+  return { image, sku, name, price, quantity };
+}
+
+const rows = [
+  createData(
+    "https://source.unsplash.com/featured/?{laptop}",
+    1,
+    "Cupcake",
+    1000,
+    1
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{laptop}",
+    1,
+    "Cupcake",
+    1000,
+    5
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{laptop}",
+    1,
+    "Cupcake",
+    1000,
+    1
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{laptop}",
+    1,
+    "Cupcake",
+    2000,
+    1
+  ),
+  createData(
+    "https://source.unsplash.com/featured/?{laptop}",
+    1,
+    "Cupcake",
+    1000,
+    1
+  ),
 ];
 
-export default function OrderEdit() {
+//function total
+function ccyFormat(num) {
+  return `${num.toFixed(2)}`;
+}
+
+function priceRow(qty, unit) {
+  return qty * unit;
+}
+
+function createRow(desc, qty, unit) {
+  const price = priceRow(qty, unit);
+  return { desc, qty, unit, price };
+}
+
+//date functions
+//Custom Functions
+function dateFormat(date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    // second: "numeric",
+    minute: "numeric",
+    hour: "numeric",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(date));
+}
+
+//invoice fake
+const TAX_RATE = 0.07;
+
+//Options
+const statusOption = [
+  { title: "Not Order Yet", value: false },
+  { title: "Ordered", value: true },
+];
+
+export default function OrderEdit(props) {
   const classes = useStyles();
 
+  //Redux Hooks
+  const dispatch = useDispatch();
+  const orders = useSelector((state) => state.orders);
+
+  //>>Load order edit
+  useEffect(() => {
+    dispatch(orderActions.getById(props.match.params.id));
+  }, [dispatch, props.match.params.id]);
+
   //Colapse
-  const [openProductInfoCollapse, setOpenProductInfoCollapse] = useState(true);
-  const handleProductInfoCollapse = () => {
-    setOpenProductInfoCollapse(!openProductInfoCollapse);
+  const [openInfoCollapse, setOpenInfoCollapse] = useState(true);
+  const handleInfoCollapse = () => {
+    setOpenInfoCollapse(!openInfoCollapse);
   };
 
-  const [openSEOCollapse, setOpenSEOCollapse] = useState(false);
-  const handleSEOCollapse = () => {
-    setOpenSEOCollapse(!openSEOCollapse);
+  const [openDetailCollapse, setOpenDetailCollapse] = useState(true);
+  const handleDetailCollapse = () => {
+    setOpenDetailCollapse(!openDetailCollapse);
   };
 
   //Main funtion
@@ -111,12 +202,12 @@ export default function OrderEdit() {
           <Grid item xs={12} sm={12} md={4}>
             <ButtonBase
               className={classes.sectionBtn}
-              onClick={handleProductInfoCollapse}
+              onClick={handleInfoCollapse}
             >
               <Typography variant="h6"> Info</Typography>
-              {openProductInfoCollapse ? <ExpandLess /> : <ExpandMore />}
+              {openInfoCollapse ? <ExpandLess /> : <ExpandMore />}
             </ButtonBase>
-            <Collapse in={openProductInfoCollapse} timeout="auto" unmountOnExit>
+            <Collapse in={openInfoCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
                 <Grid container spacing={2} justify="center">
                   {/* order id */}
@@ -126,7 +217,7 @@ export default function OrderEdit() {
                       fullWidth
                       label="Order ID"
                       disabled
-                      defaultValue="Hello World"
+                      value={orders.item.id || ""}
                     />
                   </Grid>
                   {/* create at */}
@@ -136,7 +227,7 @@ export default function OrderEdit() {
                       fullWidth
                       label="Create At"
                       disabled
-                      defaultValue="Hello World"
+                      value={orders.item.start_date || ""}
                     />
                   </Grid>
                   {/* customer name */}
@@ -146,38 +237,64 @@ export default function OrderEdit() {
                       fullWidth
                       label="Customer Name"
                       disabled
-                      defaultValue="Hello World"
+                      value={orders.item.user || "Guest"}
                     />
                   </Grid>
-                  {/* customer phone */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="customer-phone-text"
-                      fullWidth
-                      label="Customer Phone"
-                      disabled
-                      defaultValue="Hello World"
-                    />
-                  </Grid>
-                  {/* customer addess */}
+                  {/* customer detail addess */}
                   <Grid item xs={12} sm={12} md={9}>
                     <TextField
                       id="customer-address-text"
                       fullWidth
                       label="Customer Address"
                       disabled
-                      defaultValue="Hello World"
+                      value={
+                        (orders.item.order_address &&
+                          orders.item.order_address.address) ||
+                        ""
+                      }
+                    />
+                  </Grid>
+                  {/* customer district */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <TextField
+                      id="customer-district-text"
+                      fullWidth
+                      label="District"
+                      disabled
+                      value={
+                        (orders.item.order_address &&
+                          orders.item.order_address.districts.name) ||
+                        ""
+                      }
+                    />
+                  </Grid>
+                  {/* customer city */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <TextField
+                      id="customer-city-text"
+                      fullWidth
+                      label="City"
+                      disabled
+                      value={
+                        (orders.item.order_address &&
+                          orders.item.order_address.city.name) ||
+                        ""
+                      }
                     />
                   </Grid>
                   {/* Status */}
                   <Grid item xs={12} sm={12} md={9}>
                     <Autocomplete
                       id="combo-box-status"
+                      disabled
                       fullWidth
-                      value={statusOption[0]}
+                      value={
+                        orders.item.ordered && orders.item.ordered
+                          ? statusOption[1]
+                          : statusOption[0]
+                      }
                       options={statusOption}
                       getOptionLabel={(option) => option.title}
-                      style={{ width: 300 }}
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -196,51 +313,104 @@ export default function OrderEdit() {
           <Grid item xs={12} sm={12} md={8}>
             <ButtonBase
               className={classes.sectionBtn}
-              onClick={handleSEOCollapse}
+              onClick={handleDetailCollapse}
             >
               <Typography variant="h6">Detail</Typography>
-              {openSEOCollapse ? <ExpandLess /> : <ExpandMore />}
+              {openDetailCollapse ? <ExpandLess /> : <ExpandMore />}
             </ButtonBase>
-            <Collapse in={openSEOCollapse} timeout="auto" unmountOnExit>
+            <Collapse in={openDetailCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
-                <Grid container spacing={2} justify="center">
-                  {/* slug */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="slug-text"
-                      fullWidth
-                      label="Search engine friendly page name (slug)"
-                      variant="outlined"
-                    />
-                  </Grid>
-                  {/* meta title */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="meta-title-text"
-                      fullWidth
-                      label="Product Name"
-                      variant="outlined"
-                    />
-                  </Grid>
-                  {/* meta keywords */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="meta-keyword-text"
-                      fullWidth
-                      label="Short Description"
-                      variant="outlined"
-                    />
-                  </Grid>
-                  {/* meta description */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="meta-description-text"
-                      fullWidth
-                      label="Meta Description"
-                      variant="outlined"
-                    />
-                  </Grid>
-                </Grid>
+                <TableContainer component={Paper}>
+                  <Table
+                    className={classes.table}
+                    size="small"
+                    aria-label="simple table"
+                  >
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Image</TableCell>
+                        <TableCell>Name</TableCell>
+                        <TableCell align="right">Price</TableCell>
+                        <TableCell align="right">Quantity</TableCell>
+                        <TableCell align="right">Total</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    {!orders.loading ? (
+                      <TableBody>
+                        {orders.item.items &&
+                          orders.item.items.map((row, index) => (
+                            <TableRow key={index}>
+                              <TableCell component="th" scope="row">
+                                <img
+                                  height={48}
+                                  width={48}
+                                  src={
+                                    row.images &&
+                                    row.images.length > 0 &&
+                                    row.images[0].image
+                                  }
+                                  alt="No data"
+                                ></img>
+                              </TableCell>
+                              <TableCell>
+                                {row.product.title}
+                                {
+                                  <Typography
+                                    variant="body2"
+                                    color="textSecondary"
+                                  >
+                                    sku: {row.product.sku}
+                                  </Typography>
+                                }
+                              </TableCell>
+                              <TableCell align="right">
+                                {row.product.price.toLocaleString() || 0}
+                              </TableCell>
+                              <TableCell align="right">
+                                {row.quantity}
+                              </TableCell>
+                              <TableCell align="right">
+                                {(
+                                  row.product.price * row.quantity
+                                ).toLocaleString() || 0}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+
+                        {/* Row extend */}
+                        <TableRow>
+                          <TableCell rowSpan={3} colSpan={2} />
+                          <TableCell colSpan={2}>Subtotal</TableCell>
+                          <TableCell align="right">
+                            {(orders.item.get_total_price &&
+                              orders.item.get_total_price.toLocaleString()) ||
+                              0}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={2}>Ship</TableCell>
+                          <TableCell align="right">
+                            {orders.item.order_address
+                              ? orders.item.order_address.districts.ship_fee.toLocaleString()
+                              : 0}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={2}>Total</TableCell>
+                          <TableCell align="right">
+                            {(orders.item.order_address &&
+                              orders.item.get_total_price &&
+                              (
+                                orders.item.get_total_price +
+                                orders.item.order_address.districts.ship_fee
+                              ).toLocaleString()) ||
+                              0}
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    ) : null}
+                  </Table>
+                </TableContainer>
               </Paper>
             </Collapse>
           </Grid>
@@ -256,7 +426,7 @@ export default function OrderEdit() {
               <Grid item>
                 <Button
                   component={Link}
-                  to="/products"
+                  to="/orders"
                   variant="contained"
                   color="default"
                 >

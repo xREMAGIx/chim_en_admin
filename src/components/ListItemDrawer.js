@@ -23,6 +23,8 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import AccountTreeIcon from "@material-ui/icons/AccountTree";
 import BookIcon from "@material-ui/icons/Book";
+import Tooltip from "@material-ui/core/Tooltip";
+import Typography from "@material-ui/core/Typography";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -35,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function MainListItems() {
+export default function MainListItems(props) {
   const classes = useStyles();
 
   const [openSaleTab, setOpenSaleTab] = React.useState(false);
@@ -57,34 +59,59 @@ export default function MainListItems() {
   return (
     <List>
       {/* Dashboard */}
-      <ListItem button component={Link} to="/">
-        <ListItemIcon>
-          <DashboardIcon />
-        </ListItemIcon>
-        <ListItemText primary="Dashboard" />
-      </ListItem>
+      <Tooltip
+        disableFocusListener
+        disableTouchListener
+        arrow
+        placement="right"
+        title={<Typography variant="body2">Dashboard</Typography>}
+      >
+        <ListItem button component={Link} to="/">
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
+
+          <ListItemText primary="Dashboard" />
+        </ListItem>
+      </Tooltip>
 
       {/* Sales Menu List*/}
-      <ListItem button onClick={handleClickSaleTab}>
-        <ListItemIcon>
-          <AttachMoneyIcon />
-        </ListItemIcon>
-        <ListItemText primary="Sales" />
-        {openSaleTab ? <ExpandLess /> : <ExpandMore />}
-      </ListItem>
+      <Tooltip
+        disableFocusListener
+        disableTouchListener
+        arrow
+        placement="right"
+        title={<Typography variant="body2">Sales</Typography>}
+      >
+        <ListItem button onClick={handleClickSaleTab}>
+          <ListItemIcon>
+            <AttachMoneyIcon />
+          </ListItemIcon>
+          <ListItemText primary="Sales" />
+          {openSaleTab ? <ExpandLess /> : <ExpandMore />}
+        </ListItem>
+      </Tooltip>
       <Collapse in={openSaleTab} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          <ListItem
-            className={classes.nested}
-            button
-            component={Link}
-            to="/orders"
+          <Tooltip
+            disableFocusListener
+            disableTouchListener
+            arrow
+            placement="right"
+            title={<Typography variant="body2">Orders</Typography>}
           >
-            <ListItemIcon>
-              <LocalMallIcon />
-            </ListItemIcon>
-            <ListItemText primary="Orders" />
-          </ListItem>
+            <ListItem
+              className={classes.nested}
+              button
+              component={Link}
+              to="/orders"
+            >
+              <ListItemIcon>
+                <LocalMallIcon />
+              </ListItemIcon>
+              <ListItemText primary="Orders" />
+            </ListItem>
+          </Tooltip>
         </List>
         <List component="div" disablePadding>
           <ListItem
@@ -102,94 +129,158 @@ export default function MainListItems() {
       </Collapse>
 
       {/* Shop Menu List*/}
-      <ListItem button onClick={handleClickShopTab}>
-        <ListItemIcon>
-          <StoreIcon />
-        </ListItemIcon>
-        <ListItemText primary="Store" />
-        {openShopTab ? <ExpandLess /> : <ExpandMore />}
-      </ListItem>
+      <Tooltip
+        disableFocusListener
+        disableTouchListener
+        arrow
+        placement="right"
+        title={<Typography variant="body2">Store</Typography>}
+      >
+        <ListItem button onClick={handleClickShopTab}>
+          <ListItemIcon>
+            <StoreIcon />
+          </ListItemIcon>
+          <ListItemText primary="Store" />
+          {openShopTab ? <ExpandLess /> : <ExpandMore />}
+        </ListItem>
+      </Tooltip>
       <Collapse in={openShopTab} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          <ListItem
-            className={classes.nested}
-            button
-            component={Link}
-            to="/products"
+          <Tooltip
+            disableFocusListener
+            disableTouchListener
+            arrow
+            placement="right"
+            title={<Typography variant="body2">Products</Typography>}
           >
-            <ListItemIcon>
-              <FastfoodIcon />
-            </ListItemIcon>
-            <ListItemText primary="Products" />
-          </ListItem>
+            <ListItem
+              className={classes.nested}
+              button
+              component={Link}
+              to="/products"
+            >
+              <ListItemIcon>
+                <FastfoodIcon />
+              </ListItemIcon>
+              <ListItemText primary="Products" />
+            </ListItem>
+          </Tooltip>
         </List>
         <List component="div" disablePadding>
-          <ListItem
-            className={classes.nested}
-            button
-            component={Link}
-            to="/categories"
+          <Tooltip
+            disableFocusListener
+            disableTouchListener
+            arrow
+            placement="right"
+            title={<Typography variant="body2">Categories</Typography>}
           >
-            <ListItemIcon>
-              <CategoryIcon />
-            </ListItemIcon>
-            <ListItemText primary="Categories" />
-          </ListItem>
+            <ListItem
+              className={classes.nested}
+              button
+              component={Link}
+              to="/categories"
+            >
+              <ListItemIcon>
+                <CategoryIcon />
+              </ListItemIcon>
+              <ListItemText primary="Categories" />
+            </ListItem>
+          </Tooltip>
         </List>
         <List component="div" disablePadding>
-          <ListItem
-            className={classes.nested}
-            button
-            component={Link}
-            to="/blogs"
+          <Tooltip
+            disableFocusListener
+            disableTouchListener
+            arrow
+            placement="right"
+            title={<Typography variant="body2">Blogs</Typography>}
           >
-            <ListItemIcon>
-              <BookIcon />
-            </ListItemIcon>
-            <ListItemText primary="Blogs" />
-          </ListItem>
+            <ListItem
+              className={classes.nested}
+              button
+              component={Link}
+              to="/blogs"
+            >
+              <ListItemIcon>
+                <BookIcon />
+              </ListItemIcon>
+              <ListItemText primary="Blogs" />
+            </ListItem>
+          </Tooltip>
         </List>
       </Collapse>
 
       {/* Admin Menu List*/}
-      <ListItem button onClick={handleClickAdminTab}>
-        <ListItemIcon>
-          <SupervisorAccountIcon />
-        </ListItemIcon>
-        <ListItemText primary="Administration" />
-        {openAdminTab ? <ExpandLess /> : <ExpandMore />}
-      </ListItem>
+      <Tooltip
+        disableFocusListener
+        disableTouchListener
+        arrow
+        placement="right"
+        title={<Typography variant="body2">Administration</Typography>}
+      >
+        <ListItem button onClick={handleClickAdminTab}>
+          <ListItemIcon>
+            <SupervisorAccountIcon />
+          </ListItemIcon>
+          <ListItemText primary="Administration" />
+          {openAdminTab ? <ExpandLess /> : <ExpandMore />}
+        </ListItem>
+      </Tooltip>
       <Collapse in={openAdminTab} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          <ListItem
-            className={classes.nested}
-            button
-            component={Link}
-            to="/authorization"
+          <Tooltip
+            disableFocusListener
+            disableTouchListener
+            arrow
+            placement="right"
+            title={<Typography variant="body2">Authorization</Typography>}
           >
-            <ListItemIcon>
-              <AccountTreeIcon />
-            </ListItemIcon>
-            <ListItemText primary="Authorization" />
-          </ListItem>
+            <ListItem
+              className={classes.nested}
+              button
+              component={Link}
+              to="/authorization"
+            >
+              <ListItemIcon>
+                <AccountTreeIcon />
+              </ListItemIcon>
+              <ListItemText primary="Authorization" />
+            </ListItem>
+          </Tooltip>
         </List>
       </Collapse>
 
       {/* Setting */}
-      <ListItem button component={Link} to="/users">
-        <ListItemIcon>
-          <SettingsIcon />
-        </ListItemIcon>
-        <ListItemText primary="Setting" />
-      </ListItem>
+      <Tooltip
+        disableFocusListener
+        disableTouchListener
+        arrow
+        placement="right"
+        title={<Typography variant="body2">Setting</Typography>}
+      >
+        <ListItem button component={Link} to="/users">
+          <ListItemIcon>
+            <SettingsIcon />
+          </ListItemIcon>
+          <ListItemText primary="Setting" />
+        </ListItem>
+      </Tooltip>
 
       {/* Logout */}
-      <ListItem button component={Link} to="/login">
-        <ListItemIcon>
-          <ExitToAppIcon />
-        </ListItemIcon>
-        <ListItemText primary="Logout" />
-      </ListItem>
+      <Tooltip
+        disableFocusListener
+        disableTouchListener
+        arrow
+        placement="right"
+        title={<Typography variant="body2">Logout</Typography>}
+      >
+        <ListItem button component={Link} to="/login">
+          <ListItemIcon>
+            <ExitToAppIcon />
+          </ListItemIcon>
+          <ListItemText primary="Logout" />
+        </ListItem>
+      </Tooltip>
     </List>
   );
 }

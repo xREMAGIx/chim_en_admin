@@ -1,7 +1,7 @@
 import axios from "axios";
 //import backendUrl from "../constants/index";
 
-export const productService = {
+export const orderService = {
   getAll,
   getAllNonPagination,
   getById,
@@ -11,32 +11,32 @@ export const productService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/products/` : url;
+  const params = url === null ? `/api/orders/` : url;
 
   return await axios.get(params).then(handleResponse);
 }
 
 async function getAllNonPagination() {
-  return await axios.get(`/api/allProducts/`).then(handleResponse);
+  return await axios.get(`/api/allOrders/`).then(handleResponse);
 }
 
 async function getById(id) {
-  return await axios.get(`/api/products/${id}`).then(handleResponse);
+  return await axios.get(`/api/orders/${id}`).then(handleResponse);
 }
 
-async function add(product, image) {
+async function add(order, image) {
   const requestConfig = {
     headers: {
       "Content-Type": "application/json",
     },
   };
 
-  const body = JSON.stringify(product);
+  const body = JSON.stringify(order);
 
   // if (imageData.get("image")) {
   //   let res;
   //   try {
-  //     res = await axios.post(`/api/products`, body, requestConfig);
+  //     res = await axios.post(`/api/orders`, body, requestConfig);
   //   } catch (error) {
   //     console.log(error);
   //   }
@@ -49,7 +49,7 @@ async function add(product, image) {
   //   try {
   //     return await axios
   //       .put(
-  //         "/api/products/" + res.data.data._id + "/image",
+  //         "/api/orders/" + res.data.data._id + "/image",
   //         imageData,
   //         configFormData
   //       )
@@ -60,18 +60,18 @@ async function add(product, image) {
   // } else {
   console.log(body);
   return await axios
-    .post("/api/products/", body, requestConfig)
+    .post("/api/orders/", body, requestConfig)
     .then(handleResponse);
   //}
 }
 
-async function update(id, product, image, delImage) {
+async function update(id, order, image, delImage) {
   const imageData = new FormData();
 
   for (let i = 0; i < image.length; i++)
     imageData.append("images", image[i].img);
 
-  imageData.append("product", id);
+  imageData.append("order", id);
 
   const requestConfig = {
     headers: {
@@ -79,7 +79,7 @@ async function update(id, product, image, delImage) {
     },
   };
 
-  const body = JSON.stringify(product);
+  const body = JSON.stringify(order);
   console.log(body);
 
   if (delImage.length > 0) {
@@ -92,7 +92,7 @@ async function update(id, product, image, delImage) {
       },
     };
     try {
-      await axios.delete(`/api/products/images`, imageRequestConfig);
+      await axios.delete(`/api/orders/images`, imageRequestConfig);
     } catch (error) {
       console.log(error);
     }
@@ -101,7 +101,7 @@ async function update(id, product, image, delImage) {
   if (imageData.get("images")) {
     try {
       await axios
-        .put(`/api/products/${id}/`, body, requestConfig)
+        .put(`/api/orders/${id}/`, body, requestConfig)
         .then(handleResponse);
     } catch (error) {
       console.log(error);
@@ -114,14 +114,14 @@ async function update(id, product, image, delImage) {
     };
     try {
       return await axios
-        .post("/api/products/images", imageData, configFormData)
+        .post("/api/orders/images", imageData, configFormData)
         .then(handleResponse);
     } catch (error) {
       console.log(error);
     }
   } else {
     return await axios
-      .put(`/api/products/${id}/`, body, requestConfig)
+      .put(`/api/orders/${id}/`, body, requestConfig)
       .then(handleResponse);
   }
 }
@@ -133,14 +133,13 @@ async function _delete(ids) {
   };
 
   const promises = await ids.map((id) => {
-    return axios.delete(`/api/products/${id}`, requestConfig);
+    return axios.delete(`/api/orders/${id}`, requestConfig);
   });
   return Promise.all(promises).then(handleResponse);
 }
 
 function handleResponse(response) {
-  let data;
-  data = response.data;
+  const data = response.data;
 
   if (response.status > 400) {
     const error = (data && data.message) || response.statusText;
@@ -155,5 +154,6 @@ function handleResponse(response) {
       return error.toString();
     }
   }
+  console.log(data);
   return data;
 }

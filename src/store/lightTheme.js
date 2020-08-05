@@ -14,6 +14,9 @@ export const lightTheme = createMuiTheme({
     warning: {
       main: "#f39c12",
     },
+    success: {
+      main: "#1E8449",
+    },
   },
   status: {
     danger: "#aabbcc",

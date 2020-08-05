@@ -1,4 +1,6 @@
 export * from "./product.constants";
+export * from "./category.constants";
+export * from "./order.constants";
 
 //const backendUrl = "https://nextjs-eshop-backend.herokuapp.com";
 const backendUrl = "http://127.0.0.1:8000";

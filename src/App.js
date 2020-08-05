@@ -55,7 +55,7 @@ const App = () => {
             <Route exact path="/categories" component={CategoryList}></Route>
             {/* Order */}
             <Route exact path="/orders" component={OrderList}></Route>
-            <Route exact path="/orders-edit" component={OrderEdit}></Route>
+            <Route exact path="/orders-edit/:id" component={OrderEdit}></Route>
           </Switch>
         </Router>
       </ThemeProvider>

@@ -21,118 +21,33 @@ import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import DeleteIcon from "@material-ui/icons/Delete";
 import FilterListIcon from "@material-ui/icons/FilterList";
-import AddIcon from "@material-ui/icons/Add";
 import Hidden from "@material-ui/core/Hidden";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
-import Chip from "@material-ui/core/Chip";
 import EditIcon from "@material-ui/icons/Edit";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Card from "@material-ui/core/Card";
-import CardMedia from "@material-ui/core/CardMedia";
-import CardActionArea from "@material-ui/core/CardActionArea";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
 
 //Components
 import AdminLayout from "../../components/Layout";
+import CategoryAddModal from "./CategoryAdd";
+import CategoryEditModal from "./CategoryEdit";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions } from "../../actions";
-
-//Fake Data
-function createData(image, sku, name, price, categories, status, date) {
-  return { image, sku, name, price, categories, status, date };
-}
-
-const rows = [
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Tao vang 2200v jajsd ldjalsdjlajdkljalsd jkajsdl",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-];
+import { categoryActions } from "../../actions";
 
 const headCells = [
+  { id: "id", numeric: false, disablePadding: false, label: "Category ID" },
   {
-    id: "image",
+    id: "title",
     numeric: false,
     disablePadding: false,
-    label: "Image",
+    label: "Category Name",
   },
-  { id: "sku", numeric: false, disablePadding: false, label: "SKU" },
-  { id: "name", numeric: false, disablePadding: false, label: "Name" },
-  { id: "price", numeric: true, disablePadding: false, label: "Price" },
-  {
-    id: "categories",
-    numeric: false,
-    disablePadding: false,
-    label: "Categories",
-  },
-  { id: "status", numeric: false, disablePadding: false, label: "Status" },
-  { id: "date", numeric: true, disablePadding: false, label: "Date" },
   { id: "action", numeric: true, disablePadding: false, label: "Action" },
 ];
 
@@ -286,7 +201,10 @@ const useToolbarStyles = makeStyles((theme) => ({
 
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
-  const { numSelected } = props;
+
+  const dispatch = useDispatch();
+
+  const { numSelected, idSelected } = props;
 
   return (
     <Toolbar
@@ -311,14 +229,20 @@ const EnhancedTableToolbar = (props) => {
             id="tableTitle"
             component="div"
           >
-            Products
+            Categories
           </Typography>
         </Hidden>
       )}
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete">
+          <IconButton
+            aria-label="delete"
+            onClick={
+              (() => dispatch(categoryActions.delete(idSelected)),
+              props.setSelected([]))
+            }
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -340,7 +264,7 @@ const EnhancedTableToolbar = (props) => {
             </div>
           </Grid>
           <Grid item>
-            <Hidden xsDown>
+            {/* <Hidden xsDown>
               <Button
                 component={Link}
                 variant="contained"
@@ -355,7 +279,8 @@ const EnhancedTableToolbar = (props) => {
               <IconButton color="primary" aria-label="add-btn" component="span">
                 <AddIcon />
               </IconButton>
-            </Hidden>
+            </Hidden> */}
+            <CategoryAddModal />
           </Grid>
           <Grid item>
             <Tooltip title="Filter list">
@@ -440,13 +365,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ProductList() {
+export default function CategoryList() {
   //UI Hook
   const classes = useStyles();
 
   //Redux Hook
   const dispatch = useDispatch();
-  const products = useSelector((state) => state.products);
+  const categories = useSelector((state) => state.categories);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -464,19 +389,19 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
+      const newSelecteds = categories.items.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
+  const handleClick = (event, id) => {
+    const selectedIndex = selected.indexOf(id);
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
+      newSelected = newSelected.concat(selected, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
     } else if (selectedIndex === selected.length - 1) {
@@ -500,20 +425,16 @@ export default function ProductList() {
     setPage(0);
   };
 
-  const isSelected = (name) => selected.indexOf(name) !== -1;
+  const isSelected = (id) => selected.indexOf(id) !== -1;
 
   const emptyRows =
-    rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
-  //Chip function
-  const handleChipClick = (e) => {
-    console.log(e.currentTarget.id);
-  };
+    rowsPerPage -
+      Math.min(rowsPerPage, categories.items.length - page * rowsPerPage) || 0;
 
   //Main functions
-  //>>load product
+  //>>load category
   useEffect(() => {
-    dispatch(productActions.getAll());
+    dispatch(categoryActions.getAll());
   }, [dispatch]);
 
   return (
@@ -528,36 +449,13 @@ export default function ProductList() {
           <Typography color="textPrimary">Category List</Typography>
         </Breadcrumbs>
 
-        {/* Product table */}
+        {/* Category table */}
         <Paper className={classes.paper}>
-          <EnhancedTableToolbar numSelected={selected.length} />
-          <Grid
-            style={{ marginLeft: 8, marginBottom: 16 }}
-            container
-            spacing={2}
-          >
-            <Grid item>
-              <Chip
-                id="available"
-                label="Available"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-            <Grid item>
-              <Chip
-                id="unavailable"
-                label="Unavailable"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-            <Grid item>
-              <Chip
-                id="discount"
-                label="Discount"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-          </Grid>
+          <EnhancedTableToolbar
+            numSelected={selected.length}
+            idSelected={selected}
+            setSelected={setSelected}
+          />
 
           {/* Table Desktop version */}
           <Hidden smDown>
@@ -575,19 +473,19 @@ export default function ProductList() {
                   orderBy={orderBy}
                   onSelectAllClick={handleSelectAllClick}
                   onRequestSort={handleRequestSort}
-                  rowCount={rows.length}
+                  rowCount={categories.items.length || 0}
                 />
                 <TableBody>
-                  {stableSort(products.items, getComparator(order, orderBy))
+                  {stableSort(categories.items, getComparator(order, orderBy))
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row, index) => {
-                      const isItemSelected = isSelected(index);
+                      const isItemSelected = isSelected(row.id);
                       const labelId = `enhanced-table-checkbox-${index}`;
 
                       return (
                         <TableRow
                           hover
-                          onClick={(event) => handleClick(event, index)}
+                          onClick={(event) => handleClick(event, row.id)}
                           role="checkbox"
                           aria-checked={isItemSelected}
                           tabIndex={-1}
@@ -601,94 +499,14 @@ export default function ProductList() {
                             />
                           </TableCell>
 
-                          <TableCell>
-                            <img
-                              height={48}
-                              width={48}
-                              src={
-                                row.images.length > 0
-                                  ? row.images[0].image
-                                  : null
-                              }
-                              alt="No data"
-                            ></img>
-                          </TableCell>
-
                           <TableCell>{row.id}</TableCell>
-                          <TableCell
-                            style={{
-                              maxWidth: "10vw",
-                              whiteSpace: "normal",
-                              wordWrap: "break-word",
-                            }}
-                            scope="row"
-                            padding="none"
-                          >
-                            <Grid item xs zeroMinWidth>
-                              <Tooltip
-                                title={
-                                  <Typography variant="body2">
-                                    {row.title}
-                                  </Typography>
-                                }
-                              >
-                                <Typography variant="body2" noWrap>
-                                  {row.title}
-                                </Typography>
-                              </Tooltip>
-                            </Grid>
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.price.toLocaleString()}
-                          </TableCell>
-                          <TableCell>{row.categories}</TableCell>
-                          <TableCell>
-                            <Typography
-                              display="inline"
-                              variant="body2"
-                              className={clsx({
-                                [classes.status]: true,
-                                [classes.available]: row.active,
-                                [classes.unavailable]: !row.active,
-                              })}
-                            >
-                              {row.active ? "Available" : "Unavailable"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" display="block">
-                              {dateFormat(row.updated)}
-                            </Typography>
-                            <Typography
-                              color="textSecondary"
-                              variant="body2"
-                              display="block"
-                            >
-                              {dateFormat(row.created_at)}
-                            </Typography>
-                          </TableCell>
+
+                          <TableCell>{row.title}</TableCell>
+
                           <TableCell align="right">
                             <Grid container justify="flex-end">
                               <Grid item>
-                                <Tooltip title="Edit" aria-label="edit">
-                                  <IconButton
-                                    component={Link}
-                                    to={`/products-edit/${row.id}`}
-                                    aria-label="edit"
-                                  >
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </Grid>
-                              <Grid item>
-                                <Tooltip
-                                  title="Duplicate"
-                                  aria-label="duplicate"
-                                >
-                                  <IconButton aria-label="duplicate">
-                                    <FileCopyIcon />
-                                  </IconButton>
-                                </Tooltip>
+                                <CategoryEditModal id={row.id} />
                               </Grid>
                             </Grid>
                           </TableCell>
@@ -707,7 +525,7 @@ export default function ProductList() {
 
           {/* Table Mobile version */}
           <Hidden mdUp>
-            {rows
+            {categories.items
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, index) => (
                 <Card
@@ -716,49 +534,32 @@ export default function ProductList() {
                   key={index}
                 >
                   <Grid container>
-                    <Grid item xs={3} container alignItems="center">
-                      <CardActionArea>
-                        <CardMedia
-                          className={classes.cardMedia}
-                          image={row.image}
-                          title={row.name}
-                        />
-                      </CardActionArea>
-                    </Grid>
-                    <Grid item xs={7}>
+                    <Grid item xs={8}>
                       <CardContent className={classes.cardContent}>
                         <Typography gutterBottom variant="h6" component="h2">
-                          {row.name}
+                          Name: {row.title}
                         </Typography>
                         <Typography variant="body1" component="p" gutterBottom>
-                          Price: {row.price}
-                        </Typography>
-                        <Typography
-                          variant="body1"
-                          color="textPrimary"
-                          component="p"
-                          gutterBottom
-                        >
-                          Status: {row.status}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="textPrimary"
-                          component="p"
-                        >
-                          Categories: {row.categories}
+                          ID: {row.id}
                         </Typography>
                       </CardContent>
                     </Grid>
                     <Grid
                       item
-                      xs={2}
+                      xs={4}
                       container
-                      justify="flex-end"
-                      alignItems="flex-start"
+                      direction="column"
+                      justify="center"
+                      alignItems="flex-end"
                     >
-                      <IconButton aria-label="edit">
-                        <EditIcon />
+                      <CategoryEditModal id={row.id} />
+                      <IconButton
+                        aria-label="edit"
+                        onClick={() =>
+                          dispatch(categoryActions.delete([row.id]))
+                        }
+                      >
+                        <DeleteIcon />
                       </IconButton>
                     </Grid>
                   </Grid>
@@ -769,7 +570,7 @@ export default function ProductList() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={rows.length}
+            count={categories.items.length || 0}
             rowsPerPage={rowsPerPage}
             labelRowsPerPage={"Rows:"}
             page={page}

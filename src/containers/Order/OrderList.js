@@ -1,5 +1,5 @@
 //Standard Modules
-import React from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { fade, lighten, makeStyles } from "@material-ui/core/styles";
@@ -30,15 +30,18 @@ import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
 import Chip from "@material-ui/core/Chip";
 import EditIcon from "@material-ui/icons/Edit";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Card from "@material-ui/core/Card";
 import CardMedia from "@material-ui/core/CardMedia";
 import CardActionArea from "@material-ui/core/CardActionArea";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
 
-//Components
+//Custom Components
 import AdminLayout from "../../components/Layout";
+
+//Redux
+import { useDispatch, useSelector } from "react-redux";
+import { orderActions } from "../../actions";
 
 //Fake Data
 function createData(
@@ -68,22 +71,28 @@ const headCells = [
     label: "Order #",
   },
   {
-    id: "status",
+    id: "user",
     numeric: false,
     disablePadding: false,
-    label: "Order Status",
+    label: "User",
   },
   {
-    id: "customerName",
+    id: "detailAddress",
     numeric: false,
     disablePadding: false,
-    label: "Customer Name",
+    label: "Detail Address",
   },
   {
-    id: "phone",
+    id: "district",
     numeric: false,
     disablePadding: false,
-    label: "Customer Phone",
+    label: "District",
+  },
+  {
+    id: "city",
+    numeric: false,
+    disablePadding: false,
+    label: "City",
   },
   {
     id: "total",
@@ -335,8 +344,8 @@ EnhancedTableToolbar.propTypes = {
 
 //Custom Functions
 function dateFormat(date) {
-  return new Intl.DateTimeFormat("en-GB", {
-    // second: "numeric",
+  return new Intl.DateTimeFormat("en", {
+    second: "numeric",
     minute: "numeric",
     hour: "numeric",
     year: "numeric",
@@ -406,7 +415,16 @@ export default function OrderList() {
   //UI Hook
   const classes = useStyles();
 
-  //Custom Hooks
+  //Redux Hooks
+  const dispatch = useDispatch();
+  const orders = useSelector((state) => state.orders);
+
+  //>>Load all orders
+  useEffect(() => {
+    dispatch(orderActions.getAll());
+  }, []);
+
+  //Table Hooks
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
   const [selected, setSelected] = React.useState([]);
@@ -494,24 +512,18 @@ export default function OrderList() {
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
+
             <Grid item>
               <Chip
-                id="complete"
-                label="Complete"
+                id="not_ordered"
+                label="Not Order Yet"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
             <Grid item>
               <Chip
-                id="processing"
-                label="Processing"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-            <Grid item>
-              <Chip
-                id="pending"
-                label="Pending"
+                id="ordered"
+                label="Ordered"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
@@ -536,7 +548,7 @@ export default function OrderList() {
                   rowCount={rows.length}
                 />
                 <TableBody>
-                  {stableSort(rows, getComparator(order, orderBy))
+                  {stableSort(orders.items, getComparator(order, orderBy))
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row, index) => {
                       const isItemSelected = isSelected(index);
@@ -559,8 +571,8 @@ export default function OrderList() {
                             />
                           </TableCell>
 
-                          <TableCell>{row.orderId}</TableCell>
-                          <TableCell>
+                          <TableCell>{row.id}</TableCell>
+                          {/* <TableCell>
                             <Typography
                               display="inline"
                               className={clsx({
@@ -573,16 +585,29 @@ export default function OrderList() {
                             >
                               {row.status}
                             </Typography>
-                          </TableCell>
+                          </TableCell> */}
 
-                          <TableCell>{row.customerName}</TableCell>
+                          <TableCell>{row.user || "guest"}</TableCell>
 
-                          <TableCell>{row.customerPhone}</TableCell>
-                          <TableCell align="right">
-                            {row.total.toLocaleString()}
+                          <TableCell>
+                            {(row.order_address && row.order_address.address) ||
+                              ""}
+                          </TableCell>
+                          <TableCell>
+                            {(row.order_address &&
+                              row.order_address.districts.name) ||
+                              ""}
+                          </TableCell>
+                          <TableCell>
+                            {(row.order_address &&
+                              row.order_address.city.name) ||
+                              ""}
                           </TableCell>
                           <TableCell align="right">
-                            {dateFormat(row.createAt)}
+                            {row.get_total_price.toLocaleString()}
+                          </TableCell>
+                          <TableCell align="right">
+                            {row.ordered_date ? row.ordered_date : null}
                           </TableCell>
                           <TableCell align="right">
                             <Grid container justify="flex-end">
@@ -590,23 +615,13 @@ export default function OrderList() {
                                 <Tooltip title="Edit" aria-label="edit">
                                   <IconButton
                                     component={Link}
-                                    to="/orders-edit"
+                                    to={`/orders-edit/${row.id}`}
                                     aria-label="edit"
                                   >
                                     <EditIcon />
                                   </IconButton>
                                 </Tooltip>
                               </Grid>
-                              {/* <Grid item>
-                                <Tooltip
-                                  title="Duplicate"
-                                  aria-label="duplicate"
-                                >
-                                  <IconButton aria-label="duplicate">
-                                    <FileCopyIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </Grid> */}
                             </Grid>
                           </TableCell>
                         </TableRow>
