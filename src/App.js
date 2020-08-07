@@ -1,14 +1,14 @@
 import React, { useEffect } from "react";
 import "./App.css";
 import { Router, Route, Switch } from "react-router-dom";
-// import AdminRoute from "./components/AdminRoute";
-// import { useSelector, useDispatch } from "react-redux";
-// import { userActions } from "./actions";
-// import { ThemeProvider } from "@material-ui/core/styles";
+
+//Authority
+import AdminRoute from "./components/AdminRoute";
 import setAuthToken from "./store/setAuthToken";
 
 //Containers
 import Dashboard from "./containers/Dashboard";
+import Login from "./containers/Login";
 //>>Product
 import ProductList from "./containers/Product/ProductList";
 import ProductAdd from "./containers/Product/ProductAdd";
@@ -19,8 +19,12 @@ import CategoryList from "./containers/Category/CategoryList";
 import OrderList from "./containers/Order/OrderList";
 import OrderEdit from "./containers/Order/OrderEdit";
 
-import { lightTheme, darkTheme, history } from "./store";
+//Redux
+import { useSelector, useDispatch } from "react-redux";
+import { userActions } from "./actions";
 
+//Theme
+import { lightTheme, darkTheme, history } from "./store";
 import { ThemeProvider } from "@material-ui/core/styles";
 
 if (localStorage.getItem("token")) {
@@ -28,34 +32,59 @@ if (localStorage.getItem("token")) {
 }
 
 const App = () => {
-  //Custom Hooks
+  //Theme Hooks
   const [checked, setChecked] = React.useState(true);
 
-  //Handle Functions
   const toggleChecked = () => {
     setChecked((prev) => !prev);
   };
+
+  //Redux
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(userActions.getMe());
+  }, [dispatch]);
 
   return (
     <React.Fragment>
       <ThemeProvider theme={checked ? lightTheme : darkTheme}>
         <Router history={history}>
           <Switch>
-            <Route exact path="/" component={Dashboard}></Route>
+            <Route exact path="/login" component={Login}></Route>
+
+            <AdminRoute exact path="/" component={Dashboard}></AdminRoute>
+
             {/* Product */}
-            <Route exact path="/products" component={ProductList}></Route>
-            <Route exact path="/products-add" component={ProductAdd}></Route>
-            <Route
+            <AdminRoute
+              exact
+              path="/products"
+              component={ProductList}
+            ></AdminRoute>
+            <AdminRoute
+              exact
+              path="/products-add"
+              component={ProductAdd}
+            ></AdminRoute>
+            <AdminRoute
               exact
               path="/products-edit/:id"
               component={ProductEdit}
-            ></Route>
+            ></AdminRoute>
 
             {/* Category */}
-            <Route exact path="/categories" component={CategoryList}></Route>
+            <AdminRoute
+              exact
+              path="/categories"
+              component={CategoryList}
+            ></AdminRoute>
             {/* Order */}
-            <Route exact path="/orders" component={OrderList}></Route>
-            <Route exact path="/orders-edit/:id" component={OrderEdit}></Route>
+            <AdminRoute exact path="/orders" component={OrderList}></AdminRoute>
+            <AdminRoute
+              exact
+              path="/orders-edit/:id"
+              component={OrderEdit}
+            ></AdminRoute>
           </Switch>
         </Router>
       </ThemeProvider>

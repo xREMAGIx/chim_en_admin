@@ -11,7 +11,7 @@ export const orderService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/orders/` : url;
+  const params = url === null ? `/api/payments/` : url;
 
   return await axios.get(params).then(handleResponse);
 }
@@ -21,10 +21,10 @@ async function getAllNonPagination() {
 }
 
 async function getById(id) {
-  return await axios.get(`/api/orders/${id}`).then(handleResponse);
+  return await axios.get(`/api/payments/${id}`).then(handleResponse);
 }
 
-async function add(order, image) {
+async function add(order) {
   const requestConfig = {
     headers: {
       "Content-Type": "application/json",

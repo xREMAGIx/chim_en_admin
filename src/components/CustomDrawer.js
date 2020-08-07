@@ -2,7 +2,6 @@
 import React from "react";
 import clsx from "clsx";
 import { makeStyles } from "@material-ui/core/styles";
-import { useDispatch } from "react-redux";
 
 //UI Components
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -22,7 +21,10 @@ import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
 
 //Components
 import MainListItems from "./ListItemDrawer";
-// /import { userActions } from "../actions";
+
+//Redux
+import { useDispatch } from "react-redux";
+import { userActions } from "../actions";
 
 const drawerWidth = 240;
 
@@ -121,7 +123,7 @@ export default function CustomDrawer(props) {
   };
 
   const logout = () => {
-    //dispatch(userActions.logout());
+    dispatch(userActions.logout());
   };
 
   return (

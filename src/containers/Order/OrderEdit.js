@@ -227,7 +227,7 @@ export default function OrderEdit(props) {
                       fullWidth
                       label="Create At"
                       disabled
-                      value={orders.item.start_date || ""}
+                      value={orders.item.created_at || ""}
                     />
                   </Grid>
                   {/* customer name */}
@@ -248,8 +248,8 @@ export default function OrderEdit(props) {
                       label="Customer Address"
                       disabled
                       value={
-                        (orders.item.order_address &&
-                          orders.item.order_address.address) ||
+                        (orders.item.customer_details &&
+                          orders.item.customer_details.address) ||
                         ""
                       }
                     />
@@ -262,8 +262,8 @@ export default function OrderEdit(props) {
                       label="District"
                       disabled
                       value={
-                        (orders.item.order_address &&
-                          orders.item.order_address.districts.name) ||
+                        (orders.item.customer_details &&
+                          orders.item.customer_details.district) ||
                         ""
                       }
                     />
@@ -276,8 +276,8 @@ export default function OrderEdit(props) {
                       label="City"
                       disabled
                       value={
-                        (orders.item.order_address &&
-                          orders.item.order_address.city.name) ||
+                        (orders.item.customer_details &&
+                          orders.item.customer_details.city) ||
                         ""
                       }
                     />
@@ -337,8 +337,8 @@ export default function OrderEdit(props) {
                     </TableHead>
                     {!orders.loading ? (
                       <TableBody>
-                        {orders.item.items &&
-                          orders.item.items.map((row, index) => (
+                        {orders.item.product_details &&
+                          orders.item.product_details.map((row, index) => (
                             <TableRow key={index}>
                               <TableCell component="th" scope="row">
                                 <img
@@ -353,25 +353,25 @@ export default function OrderEdit(props) {
                                 ></img>
                               </TableCell>
                               <TableCell>
-                                {row.product.title}
+                                {row.product_name}
                                 {
                                   <Typography
                                     variant="body2"
                                     color="textSecondary"
                                   >
-                                    sku: {row.product.sku}
+                                    sku: {row.sku || ""}
                                   </Typography>
                                 }
                               </TableCell>
                               <TableCell align="right">
-                                {row.product.price.toLocaleString() || 0}
+                                {row.product_price.toLocaleString() || 0}
                               </TableCell>
                               <TableCell align="right">
-                                {row.quantity}
+                                {row.product_amount}
                               </TableCell>
                               <TableCell align="right">
                                 {(
-                                  row.product.price * row.quantity
+                                  row.product_price * row.product_amount
                                 ).toLocaleString() || 0}
                               </TableCell>
                             </TableRow>
@@ -382,27 +382,27 @@ export default function OrderEdit(props) {
                           <TableCell rowSpan={3} colSpan={2} />
                           <TableCell colSpan={2}>Subtotal</TableCell>
                           <TableCell align="right">
-                            {(orders.item.get_total_price &&
-                              orders.item.get_total_price.toLocaleString()) ||
+                            {(orders.item.amount &&
+                              orders.item.amount.toLocaleString()) ||
                               0}
                           </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell colSpan={2}>Ship</TableCell>
                           <TableCell align="right">
-                            {orders.item.order_address
-                              ? orders.item.order_address.districts.ship_fee.toLocaleString()
+                            {orders.item.customer_details.district
+                              ? orders.item.customer_details.district.ship_fee.toLocaleString()
                               : 0}
                           </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell colSpan={2}>Total</TableCell>
                           <TableCell align="right">
-                            {(orders.item.order_address &&
-                              orders.item.get_total_price &&
+                            {(orders.item.customer_details.district &&
+                              orders.item.amount &&
                               (
-                                orders.item.get_total_price +
-                                orders.item.order_address.districts.ship_fee
+                                orders.item.amount +
+                                orders.item.customer_details.district.ship_fee
                               ).toLocaleString()) ||
                               0}
                           </TableCell>

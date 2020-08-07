@@ -71,6 +71,12 @@ const headCells = [
     label: "Order #",
   },
   {
+    id: "status",
+    numeric: false,
+    disablePadding: false,
+    label: "Status",
+  },
+  {
     id: "user",
     numeric: false,
     disablePadding: false,
@@ -570,9 +576,10 @@ export default function OrderList() {
                               inputProps={{ "aria-labelledby": labelId }}
                             />
                           </TableCell>
-
+                          {/* Id */}
                           <TableCell>{row.id}</TableCell>
-                          {/* <TableCell>
+                          {/* Status */}
+                          <TableCell>
                             <Typography
                               display="inline"
                               className={clsx({
@@ -580,35 +587,43 @@ export default function OrderList() {
                                 [classes.complete]: row.status === "complete",
                                 [classes.processing]:
                                   row.status === "processing",
-                                [classes.pending]: row.status === "pending",
+                                [classes.pending]: row.status === "S",
                               })}
                             >
                               {row.status}
                             </Typography>
-                          </TableCell> */}
-
+                          </TableCell>
+                          {/* User */}
                           <TableCell>{row.user || "guest"}</TableCell>
-
+                          {/* address */}
                           <TableCell>
-                            {(row.order_address && row.order_address.address) ||
+                            {(row.customer_details &&
+                              row.customer_details.address) ||
                               ""}
                           </TableCell>
+                          {/* district */}
                           <TableCell>
-                            {(row.order_address &&
-                              row.order_address.districts.name) ||
+                            {(row.customer_details &&
+                              row.customer_details.district) ||
                               ""}
                           </TableCell>
+                          {/* city */}
                           <TableCell>
-                            {(row.order_address &&
-                              row.order_address.city.name) ||
+                            {(row.customer_details &&
+                              row.customer_details.city) ||
                               ""}
                           </TableCell>
+                          {/* total */}
                           <TableCell align="right">
-                            {row.get_total_price.toLocaleString()}
+                            {row.amount.toLocaleString()}
                           </TableCell>
+                          {/* create at */}
                           <TableCell align="right">
-                            {row.ordered_date ? row.ordered_date : null}
+                            {row.created_at
+                              ? new Date(row.created_at).toLocaleString()
+                              : null}
                           </TableCell>
+                          {/* actions */}
                           <TableCell align="right">
                             <Grid container justify="flex-end">
                               <Grid item>
