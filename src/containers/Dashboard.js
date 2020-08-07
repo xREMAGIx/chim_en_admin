@@ -18,8 +18,9 @@ import Button from "@material-ui/core/Button";
 
 //Components
 import { history } from "../store";
-
 import AdminLayout from "../components/Layout";
+//>>Charts
+import OrdersChart from "../components/Charts/OrdersChart";
 
 const useStyles = makeStyles((theme) => ({
   sectionBtn: {
@@ -232,7 +233,13 @@ export default function Dashboard() {
                   timeout="auto"
                   unmountOnExit
                 >
-                  <Paper className={classes.padding} elevation={4}></Paper>
+                  <Paper
+                    className={classes.padding}
+                    style={{ height: 300 }}
+                    elevation={4}
+                  >
+                    <OrdersChart />
+                  </Paper>
                 </Collapse>
               </Grid>
               {/* Users chart */}
