@@ -30,7 +30,7 @@ import AdminLayout from "../../components/Layout";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions } from "../../actions";
+import { productActions, categoryActions } from "../../actions";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -102,6 +102,11 @@ export default function ProductAdd() {
 
   //Redux Hooks
   const dispatch = useDispatch();
+  const categories = useSelector((state) => state.categories);
+  //>>Load all categories
+  useEffect(() => {
+    dispatch(categoryActions.getAll());
+  }, [dispatch]);
 
   //Colapse
   const [openProductInfoCollapse, setOpenProductInfoCollapse] = useState(true);
@@ -208,6 +213,7 @@ export default function ProductAdd() {
                     <TextField
                       id="name-text"
                       fullWidth
+                      required
                       label="Product Name"
                       variant="outlined"
                       value={title}
@@ -221,10 +227,8 @@ export default function ProductAdd() {
                     <Autocomplete
                       id="combo-box-category"
                       fullWidth
-                      options={statusOption}
-                      value={
-                        formData.active ? statusOption[0] : statusOption[1]
-                      }
+                      options={categories.items}
+                      value={categories.items[0] || null}
                       onChange={(e, newValue) =>
                         setFormData({ ...formData, active: newValue.value })
                       }
@@ -243,6 +247,7 @@ export default function ProductAdd() {
                     <TextField
                       id="sdescription-text"
                       fullWidth
+                      required
                       label="Short Description"
                       variant="outlined"
                       value={description}
@@ -429,6 +434,7 @@ export default function ProductAdd() {
                     <TextField
                       id="slug-text"
                       fullWidth
+                      required
                       label="Search engine friendly page name (slug)"
                       variant="outlined"
                       value={slug}

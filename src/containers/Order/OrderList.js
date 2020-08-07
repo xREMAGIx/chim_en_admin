@@ -584,10 +584,10 @@ export default function OrderList() {
                               display="inline"
                               className={clsx({
                                 [classes.status]: true,
-                                [classes.complete]: row.status === "complete",
+                                [classes.complete]: row.status === "Complete",
                                 [classes.processing]:
-                                  row.status === "processing",
-                                [classes.pending]: row.status === "S",
+                                  row.status === "Processing",
+                                [classes.pending]: row.status === "Pending",
                               })}
                             >
                               {row.status}
@@ -716,7 +716,7 @@ export default function OrderList() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={rows.length}
+            count={orders.items.length}
             rowsPerPage={rowsPerPage}
             labelRowsPerPage={"Rows:"}
             page={page}

@@ -4,7 +4,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 
 //UI Components
-import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
@@ -45,58 +44,6 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
-
-// Generate Order Data
-function createData(id, date, name, shipTo, paymentMethod, amount) {
-  return { id, date, name, shipTo, paymentMethod, amount };
-}
-
-const rows = [
-  createData(
-    0,
-    "16 Mar, 2019",
-    "Elvis Presley",
-    "Tupelo, MS",
-    "VISA ⠀•••• 3719",
-    312.44
-  ),
-  createData(
-    1,
-    "16 Mar, 2019",
-    "Paul McCartney",
-    "London, UK",
-    "VISA ⠀•••• 2574",
-    866.99
-  ),
-  createData(
-    2,
-    "16 Mar, 2019",
-    "Tom Scholz",
-    "Boston, MA",
-    "MC ⠀•••• 1253",
-    100.81
-  ),
-  createData(
-    3,
-    "16 Mar, 2019",
-    "Michael Jackson",
-    "Gary, IN",
-    "AMEX ⠀•••• 2000",
-    654.39
-  ),
-  createData(
-    4,
-    "15 Mar, 2019",
-    "Bruce Springsteen",
-    "Long Branch, NJ",
-    "VISA ⠀•••• 5919",
-    212.79
-  ),
-];
-
-function preventDefault(event) {
-  event.preventDefault();
-}
 
 export default function Dashboard() {
   const classes = useStyles();
@@ -225,7 +172,7 @@ export default function Dashboard() {
                   className={classes.sectionBtn}
                   onClick={handleOrderChartCollapse}
                 >
-                  <Typography variant="h6">Orders</Typography>
+                  <Typography variant="h6">New Orders past 7 days</Typography>
                   {openOrderChartCollapse ? <ExpandLess /> : <ExpandMore />}
                 </ButtonBase>
                 <Collapse
@@ -242,13 +189,16 @@ export default function Dashboard() {
                   </Paper>
                 </Collapse>
               </Grid>
-              {/* Users chart */}
+
+              {/* Total chart */}
               <Grid item xs={12} sm={6}>
                 <ButtonBase
                   className={classes.sectionBtn}
                   onClick={handleUserChartCollapse}
                 >
-                  <Typography variant="h6">Users</Typography>
+                  <Typography variant="h6">
+                    Total of orders past 7 days
+                  </Typography>
                   {openUserChartCollapse ? <ExpandLess /> : <ExpandMore />}
                 </ButtonBase>
                 <Collapse

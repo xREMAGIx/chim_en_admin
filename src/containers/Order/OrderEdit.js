@@ -144,8 +144,9 @@ const TAX_RATE = 0.07;
 
 //Options
 const statusOption = [
-  { title: "Not Order Yet", value: false },
-  { title: "Ordered", value: true },
+  { title: "Pending", value: "Pending" },
+  { title: "Processing", value: "Processing" },
+  { title: "Complete", value: "Complete" },
 ];
 
 export default function OrderEdit(props) {
@@ -197,225 +198,224 @@ export default function OrderEdit(props) {
         </Breadcrumbs>
 
         {/* Main */}
-        <Grid container direction="row-reverse" spacing={3}>
-          {/* Order info */}
-          <Grid item xs={12} sm={12} md={4}>
-            <ButtonBase
-              className={classes.sectionBtn}
-              onClick={handleInfoCollapse}
-            >
-              <Typography variant="h6"> Info</Typography>
-              {openInfoCollapse ? <ExpandLess /> : <ExpandMore />}
-            </ButtonBase>
-            <Collapse in={openInfoCollapse} timeout="auto" unmountOnExit>
-              <Paper className={classes.padding} elevation={4}>
-                <Grid container spacing={2} justify="center">
-                  {/* order id */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="order-id-text"
-                      fullWidth
-                      label="Order ID"
-                      disabled
-                      value={orders.item.id || ""}
-                    />
+        {orders.item && orders.item.customer_details ? (
+          <Grid container direction="row-reverse" spacing={3}>
+            {/* Order info */}
+            <Grid item xs={12} sm={12} md={4}>
+              <ButtonBase
+                className={classes.sectionBtn}
+                onClick={handleInfoCollapse}
+              >
+                <Typography variant="h6"> Info</Typography>
+                {openInfoCollapse ? <ExpandLess /> : <ExpandMore />}
+              </ButtonBase>
+              <Collapse in={openInfoCollapse} timeout="auto" unmountOnExit>
+                <Paper className={classes.padding} elevation={4}>
+                  <Grid container spacing={2} justify="center">
+                    {/* order id */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="order-id-text"
+                        fullWidth
+                        label="Order ID"
+                        disabled
+                        value={orders.item.id || ""}
+                      />
+                    </Grid>
+                    {/* create at */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="create-at-text"
+                        fullWidth
+                        label="Create At"
+                        disabled
+                        value={orders.item.created_at || ""}
+                      />
+                    </Grid>
+                    {/* customer name */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="customer-name-text"
+                        fullWidth
+                        label="Customer Name"
+                        disabled
+                        value={orders.item.user || "Guest"}
+                      />
+                    </Grid>
+                    {/* customer detail addess */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="customer-address-text"
+                        fullWidth
+                        label="Customer Address"
+                        disabled
+                        value={
+                          (orders.item.customer_details &&
+                            orders.item.customer_details.length > 0 &&
+                            orders.item.customer_details[0].address) ||
+                          ""
+                        }
+                      />
+                    </Grid>
+                    {/* customer district */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="customer-district-text"
+                        fullWidth
+                        label="District"
+                        disabled
+                        value={
+                          (orders.item.customer_details.length > 0 &&
+                            orders.item.customer_details[0].dictrict) ||
+                          ""
+                        }
+                      />
+                    </Grid>
+                    {/* customer city */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="customer-city-text"
+                        fullWidth
+                        label="City"
+                        disabled
+                        value={
+                          (orders.item.customer_details.length > 0 &&
+                            orders.item.customer_details[0].city) ||
+                          ""
+                        }
+                      />
+                    </Grid>
+                    {/* Status */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <Autocomplete
+                        id="combo-box-status"
+                        fullWidth
+                        value={
+                          orders.item && orders.item.status === "Complete"
+                            ? statusOption[2]
+                            : orders.item.status === "Processing"
+                            ? statusOption[1]
+                            : statusOption[0]
+                        }
+                        options={statusOption}
+                        getOptionLabel={(option) => option.title}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Status"
+                            variant="outlined"
+                          />
+                        )}
+                      />
+                    </Grid>
                   </Grid>
-                  {/* create at */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="create-at-text"
-                      fullWidth
-                      label="Create At"
-                      disabled
-                      value={orders.item.created_at || ""}
-                    />
-                  </Grid>
-                  {/* customer name */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="customer-name-text"
-                      fullWidth
-                      label="Customer Name"
-                      disabled
-                      value={orders.item.user || "Guest"}
-                    />
-                  </Grid>
-                  {/* customer detail addess */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="customer-address-text"
-                      fullWidth
-                      label="Customer Address"
-                      disabled
-                      value={
-                        (orders.item.customer_details &&
-                          orders.item.customer_details.address) ||
-                        ""
-                      }
-                    />
-                  </Grid>
-                  {/* customer district */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="customer-district-text"
-                      fullWidth
-                      label="District"
-                      disabled
-                      value={
-                        (orders.item.customer_details &&
-                          orders.item.customer_details.district) ||
-                        ""
-                      }
-                    />
-                  </Grid>
-                  {/* customer city */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="customer-city-text"
-                      fullWidth
-                      label="City"
-                      disabled
-                      value={
-                        (orders.item.customer_details &&
-                          orders.item.customer_details.city) ||
-                        ""
-                      }
-                    />
-                  </Grid>
-                  {/* Status */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <Autocomplete
-                      id="combo-box-status"
-                      disabled
-                      fullWidth
-                      value={
-                        orders.item.ordered && orders.item.ordered
-                          ? statusOption[1]
-                          : statusOption[0]
-                      }
-                      options={statusOption}
-                      getOptionLabel={(option) => option.title}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Status"
-                          variant="outlined"
-                        />
-                      )}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Collapse>
-          </Grid>
+                </Paper>
+              </Collapse>
+            </Grid>
 
-          {/* Order detail*/}
-          <Grid item xs={12} sm={12} md={8}>
-            <ButtonBase
-              className={classes.sectionBtn}
-              onClick={handleDetailCollapse}
-            >
-              <Typography variant="h6">Detail</Typography>
-              {openDetailCollapse ? <ExpandLess /> : <ExpandMore />}
-            </ButtonBase>
-            <Collapse in={openDetailCollapse} timeout="auto" unmountOnExit>
-              <Paper className={classes.padding} elevation={4}>
-                <TableContainer component={Paper}>
-                  <Table
-                    className={classes.table}
-                    size="small"
-                    aria-label="simple table"
-                  >
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Image</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell align="right">Price</TableCell>
-                        <TableCell align="right">Quantity</TableCell>
-                        <TableCell align="right">Total</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    {!orders.loading ? (
-                      <TableBody>
-                        {orders.item.product_details &&
-                          orders.item.product_details.map((row, index) => (
-                            <TableRow key={index}>
-                              <TableCell component="th" scope="row">
-                                <img
-                                  height={48}
-                                  width={48}
-                                  src={
-                                    row.images &&
-                                    row.images.length > 0 &&
-                                    row.images[0].image
+            {/* Order detail*/}
+            <Grid item xs={12} sm={12} md={8}>
+              <ButtonBase
+                className={classes.sectionBtn}
+                onClick={handleDetailCollapse}
+              >
+                <Typography variant="h6">Detail</Typography>
+                {openDetailCollapse ? <ExpandLess /> : <ExpandMore />}
+              </ButtonBase>
+              <Collapse in={openDetailCollapse} timeout="auto" unmountOnExit>
+                <Paper className={classes.padding} elevation={4}>
+                  <TableContainer component={Paper}>
+                    <Table
+                      className={classes.table}
+                      size="small"
+                      aria-label="simple table"
+                    >
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Image</TableCell>
+                          <TableCell>Name</TableCell>
+                          <TableCell align="right">Price</TableCell>
+                          <TableCell align="right">Quantity</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      {!orders.loading ? (
+                        <TableBody>
+                          {orders.item.product_details &&
+                            orders.item.product_details.map((row, index) => (
+                              <TableRow key={index}>
+                                <TableCell component="th" scope="row">
+                                  <img
+                                    height={48}
+                                    width={48}
+                                    src={
+                                      row.images &&
+                                      row.images.length > 0 &&
+                                      row.images[0].image
+                                    }
+                                    alt="No data"
+                                  ></img>
+                                </TableCell>
+                                <TableCell>
+                                  {row.product_name}
+                                  {
+                                    <Typography
+                                      variant="body2"
+                                      color="textSecondary"
+                                    >
+                                      sku: {row.sku || ""}
+                                    </Typography>
                                   }
-                                  alt="No data"
-                                ></img>
-                              </TableCell>
-                              <TableCell>
-                                {row.product_name}
-                                {
-                                  <Typography
-                                    variant="body2"
-                                    color="textSecondary"
-                                  >
-                                    sku: {row.sku || ""}
-                                  </Typography>
-                                }
-                              </TableCell>
-                              <TableCell align="right">
-                                {row.product_price.toLocaleString() || 0}
-                              </TableCell>
-                              <TableCell align="right">
-                                {row.product_amount}
-                              </TableCell>
-                              <TableCell align="right">
-                                {(
-                                  row.product_price * row.product_amount
-                                ).toLocaleString() || 0}
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                                </TableCell>
+                                <TableCell align="right">
+                                  {row.product_price.toLocaleString() || 0}
+                                </TableCell>
+                                <TableCell align="right">
+                                  {row.product_amount}
+                                </TableCell>
+                                <TableCell align="right">
+                                  {(
+                                    row.product_price * row.product_amount
+                                  ).toLocaleString() || 0}
+                                </TableCell>
+                              </TableRow>
+                            ))}
 
-                        {/* Row extend */}
-                        <TableRow>
-                          <TableCell rowSpan={3} colSpan={2} />
-                          <TableCell colSpan={2}>Subtotal</TableCell>
-                          <TableCell align="right">
-                            {(orders.item.amount &&
-                              orders.item.amount.toLocaleString()) ||
-                              0}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell colSpan={2}>Ship</TableCell>
-                          <TableCell align="right">
-                            {orders.item.customer_details.district
-                              ? orders.item.customer_details.district.ship_fee.toLocaleString()
-                              : 0}
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell colSpan={2}>Total</TableCell>
-                          <TableCell align="right">
-                            {(orders.item.customer_details.district &&
-                              orders.item.amount &&
-                              (
-                                orders.item.amount +
-                                orders.item.customer_details.district.ship_fee
-                              ).toLocaleString()) ||
-                              0}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    ) : null}
-                  </Table>
-                </TableContainer>
-              </Paper>
-            </Collapse>
+                          {/* Row extend */}
+                          <TableRow>
+                            <TableCell rowSpan={3} colSpan={2} />
+                            <TableCell colSpan={2}>Subtotal</TableCell>
+                            <TableCell align="right">
+                              {orders.item.product_details
+                                .map(
+                                  ({ product_price, product_amount }) =>
+                                    product_price * product_amount
+                                )
+                                .reduce((sum, i) => sum + i, 0)
+                                .toLocaleString() || 0}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell colSpan={2}>Ship</TableCell>
+                            <TableCell align="right">
+                              {orders.item.ship.toLocaleString() || 0}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell colSpan={2}>Total</TableCell>
+                            <TableCell align="right">
+                              {orders.item.amount.toLocaleString() || 0}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      ) : null}
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              </Collapse>
+            </Grid>
           </Grid>
-        </Grid>
-
+        ) : null}
         {/* White space for bottom appbar */}
         <div style={{ height: "128px" }} />
 

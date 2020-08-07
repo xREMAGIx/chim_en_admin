@@ -35,7 +35,7 @@ import AdminLayout from "../../components/Layout";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions } from "../../actions";
+import { productActions, categoryActions } from "../../actions";
 
 const backendUrl = "http://127.0.0.1:8000";
 
@@ -130,6 +130,15 @@ export default function ProductEdit(props) {
   //Redux Hooks
   const dispatch = useDispatch();
   const products = useSelector((state) => state.products);
+  const categories = useSelector((state) => state.categories);
+  //>>Load all categories
+  useEffect(() => {
+    dispatch(categoryActions.getAll());
+  }, [dispatch]);
+  //>>Load Product Edit
+  useEffect(() => {
+    dispatch(productActions.getById(props.match.params.id));
+  }, [dispatch, props.match.params.id]);
 
   //Colapse
   const [openProductInfoCollapse, setOpenProductInfoCollapse] = useState(true);
@@ -205,11 +214,6 @@ export default function ProductEdit(props) {
 
   const { sku, title, price, description, full_description, slug } = formData;
 
-  //>>Load Product Edit
-  useEffect(() => {
-    dispatch(productActions.getById(props.match.params.id));
-  }, [dispatch, props.match.params.id]);
-
   //>>Put item to form data
   useEffect(() => {
     setFormData({ ...products.item, images: [] });
@@ -231,7 +235,12 @@ export default function ProductEdit(props) {
 
   const onSubmit = () => {
     dispatch(
-      productActions.update(props.match.params.id, formData, image, delImage)
+      productActions.update(
+        props.match.params.id,
+        { ...formData, category: formData.category.id },
+        image,
+        delImage
+      )
     );
   };
 
@@ -374,6 +383,30 @@ export default function ProductEdit(props) {
                       name="title"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
+                    />
+                  </Grid>
+                  {/* category */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <Autocomplete
+                      id="combo-box-category"
+                      fullWidth
+                      options={categories.items}
+                      value={
+                        categories.items.find(
+                          (element) => element.id === formData.category
+                        ) || null
+                      }
+                      onChange={(e, newValue) =>
+                        setFormData({ ...formData, category: newValue })
+                      }
+                      getOptionLabel={(option) => option.title}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Category"
+                          variant="outlined"
+                        />
+                      )}
                     />
                   </Grid>
                   {/* short Description */}
