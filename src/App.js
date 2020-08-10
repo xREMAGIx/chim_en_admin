@@ -18,6 +18,10 @@ import CategoryList from "./containers/Category/CategoryList";
 //>>Order
 import OrderList from "./containers/Order/OrderList";
 import OrderEdit from "./containers/Order/OrderEdit";
+//>>District
+import DistrictList from "./containers/District/DistrictList";
+//>>City
+import CityList from "./containers/City/CityList";
 
 //Redux
 import { useSelector, useDispatch } from "react-redux";
@@ -78,6 +82,7 @@ const App = () => {
               path="/categories"
               component={CategoryList}
             ></AdminRoute>
+
             {/* Order */}
             <AdminRoute exact path="/orders" component={OrderList}></AdminRoute>
             <AdminRoute
@@ -85,6 +90,16 @@ const App = () => {
               path="/orders-edit/:id"
               component={OrderEdit}
             ></AdminRoute>
+
+            {/* District */}
+            <AdminRoute
+              exact
+              path="/districts"
+              component={DistrictList}
+            ></AdminRoute>
+
+            {/* City */}
+            <AdminRoute exact path="/cities" component={CityList}></AdminRoute>
           </Switch>
         </Router>
       </ThemeProvider>
