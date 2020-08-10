@@ -72,10 +72,12 @@ export default function DistrictEditModal(props) {
   };
 
   const onSubmit = () => {
-    console.log(formData);
     dispatch(districtActions.update(props.id, formData));
-    handleClose();
   };
+
+  useEffect(() => {
+    if (districts.success) handleClose();
+  }, [districts.success]);
 
   const keyPressed = (e) => {
     if (e.key === "Enter") onSubmit(e);

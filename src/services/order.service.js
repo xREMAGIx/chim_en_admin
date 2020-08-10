@@ -11,13 +11,13 @@ export const orderService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/payments/` : url;
+  const params = url === null ? `/api/payments/` : `/api/payments/` + url;
 
   return await axios.get(params).then(handleResponse);
 }
 
 async function getAllNonPagination() {
-  return await axios.get(`/api/allOrders/`).then(handleResponse);
+  return await axios.get(`/api/allPayments/`).then(handleResponse);
 }
 
 async function getById(id) {
@@ -33,46 +33,13 @@ async function add(order) {
 
   const body = JSON.stringify(order);
 
-  // if (imageData.get("image")) {
-  //   let res;
-  //   try {
-  //     res = await axios.post(`/api/orders`, body, requestConfig);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-
-  //   const configFormData = {
-  //     headers: {
-  //       "Content-Type": "multipart/form-data",
-  //     },
-  //   };
-  //   try {
-  //     return await axios
-  //       .put(
-  //         "/api/orders/" + res.data.data._id + "/image",
-  //         imageData,
-  //         configFormData
-  //       )
-  //       .then(handleResponse);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // } else {
-  console.log(body);
   return await axios
-    .post("/api/orders/", body, requestConfig)
-    .then(handleResponse);
+    .post("/api/payments/", body, requestConfig)
+    .then(handleResponse, handleResponse);
   //}
 }
 
-async function update(id, order, image, delImage) {
-  const imageData = new FormData();
-
-  for (let i = 0; i < image.length; i++)
-    imageData.append("images", image[i].img);
-
-  imageData.append("order", id);
-
+async function update(id, order) {
   const requestConfig = {
     headers: {
       "Content-Type": "application/json",
@@ -80,50 +47,10 @@ async function update(id, order, image, delImage) {
   };
 
   const body = JSON.stringify(order);
-  console.log(body);
 
-  if (delImage.length > 0) {
-    const imageRequestConfig = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        ids: delImage,
-      },
-    };
-    try {
-      await axios.delete(`/api/orders/images`, imageRequestConfig);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  if (imageData.get("images")) {
-    try {
-      await axios
-        .put(`/api/orders/${id}/`, body, requestConfig)
-        .then(handleResponse);
-    } catch (error) {
-      console.log(error);
-    }
-
-    const configFormData = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    };
-    try {
-      return await axios
-        .post("/api/orders/images", imageData, configFormData)
-        .then(handleResponse);
-    } catch (error) {
-      console.log(error);
-    }
-  } else {
-    return await axios
-      .put(`/api/orders/${id}/`, body, requestConfig)
-      .then(handleResponse);
-  }
+  return await axios
+    .put(`/api/payments/${id}/`, body, requestConfig)
+    .then(handleResponse);
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
@@ -133,7 +60,7 @@ async function _delete(ids) {
   };
 
   const promises = await ids.map((id) => {
-    return axios.delete(`/api/orders/${id}`, requestConfig);
+    return axios.delete(`/api/payments/${id}`, requestConfig);
   });
   return Promise.all(promises).then(handleResponse);
 }

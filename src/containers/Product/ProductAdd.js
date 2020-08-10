@@ -1,7 +1,6 @@
 //Standard Modules
 import React, { useState, useEffect } from "react";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
-import PropTypes from "prop-types";
+import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 
 //UI Components
@@ -27,6 +26,7 @@ import { Editor } from "@tinymce/tinymce-react";
 
 //Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -103,6 +103,8 @@ export default function ProductAdd() {
   //Redux Hooks
   const dispatch = useDispatch();
   const categories = useSelector((state) => state.categories);
+  const products = useSelector((state) => state.products);
+
   //>>Load all categories
   useEffect(() => {
     dispatch(categoryActions.getAll());
@@ -180,6 +182,15 @@ export default function ProductAdd() {
           </Link>
           <Typography color="textPrimary">Product Add</Typography>
         </Breadcrumbs>
+
+        {/* Success & Error handling */}
+        {products.error && (
+          <CustomAlert
+            openError={true}
+            messageError={products.error}
+          ></CustomAlert>
+        )}
+        {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
         {/* Main */}
         <Grid container direction="column" spacing={3}>

@@ -1,7 +1,6 @@
 //Standard Modules
 import React, { useState, useEffect } from "react";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
-import PropTypes from "prop-types";
+import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 
 //UI Components
@@ -69,79 +68,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-//Fake Data
-function createData(image, sku, name, price, quantity) {
-  return { image, sku, name, price, quantity };
-}
-
-const rows = [
-  createData(
-    "https://source.unsplash.com/featured/?{laptop}",
-    1,
-    "Cupcake",
-    1000,
-    1
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{laptop}",
-    1,
-    "Cupcake",
-    1000,
-    5
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{laptop}",
-    1,
-    "Cupcake",
-    1000,
-    1
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{laptop}",
-    1,
-    "Cupcake",
-    2000,
-    1
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{laptop}",
-    1,
-    "Cupcake",
-    1000,
-    1
-  ),
-];
-
-//function total
-function ccyFormat(num) {
-  return `${num.toFixed(2)}`;
-}
-
-function priceRow(qty, unit) {
-  return qty * unit;
-}
-
-function createRow(desc, qty, unit) {
-  const price = priceRow(qty, unit);
-  return { desc, qty, unit, price };
-}
-
-//date functions
-//Custom Functions
-function dateFormat(date) {
-  return new Intl.DateTimeFormat("en-GB", {
-    // second: "numeric",
-    minute: "numeric",
-    hour: "numeric",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(date));
-}
-
-//invoice fake
-const TAX_RATE = 0.07;
-
 //Options
 const statusOption = [
   { title: "Pending", value: "Pending" },
@@ -173,14 +99,17 @@ export default function OrderEdit(props) {
   };
 
   //Main funtion
-  const [formData, setFormData] = useState();
+  const [formData, setFormData] = useState({
+    status: "",
+  });
 
-  const onSubmit = async () => {
-    //dispatch(categoryActions.add(formData));
-  };
+  //>>Set formData = Order item
+  useEffect(() => {
+    setFormData({ ...orders.item });
+  }, [orders.item]);
 
-  const keyPressed = (e) => {
-    if (e.key === "Enter") onSubmit(e);
+  const onSubmit = () => {
+    dispatch(orderActions.update(props.match.params.id, formData));
   };
 
   return (
@@ -194,7 +123,9 @@ export default function OrderEdit(props) {
           <Link className={classes.link} to="/orders">
             Order List
           </Link>
-          <Typography color="textPrimary">Order Edit: #</Typography>
+          <Typography color="textPrimary">
+            Order Edit: <strong>#{props.match.params.id}</strong>
+          </Typography>
         </Breadcrumbs>
 
         {/* Main */}
@@ -291,11 +222,13 @@ export default function OrderEdit(props) {
                         id="combo-box-status"
                         fullWidth
                         value={
-                          orders.item && orders.item.status === "Complete"
-                            ? statusOption[2]
-                            : orders.item.status === "Processing"
-                            ? statusOption[1]
-                            : statusOption[0]
+                          statusOption.find(
+                            (element) => element.value === formData.status
+                          ) || null
+                        }
+                        onChange={(e, newValue) =>
+                          newValue &&
+                          setFormData({ ...formData, status: newValue.value })
                         }
                         options={statusOption}
                         getOptionLabel={(option) => option.title}
@@ -434,7 +367,7 @@ export default function OrderEdit(props) {
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary">
+                <Button variant="contained" color="primary" onClick={onSubmit}>
                   Update
                 </Button>
               </Grid>

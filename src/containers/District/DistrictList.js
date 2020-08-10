@@ -1,5 +1,5 @@
 //Standard Modules
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { fade, lighten, makeStyles } from "@material-ui/core/styles";
@@ -29,11 +29,13 @@ import SearchIcon from "@material-ui/icons/Search";
 import Card from "@material-ui/core/Card";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
+import Skeleton from "@material-ui/lab/Skeleton";
 
 //Components
 import AdminLayout from "../../components/Layout";
 import DistrictAddModal from "./DistrictAdd";
 import DistrictEditModal from "./DistrictEdit";
+import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -215,11 +217,21 @@ const EnhancedTableToolbar = (props) => {
 
   const dispatch = useDispatch();
 
-  const { numSelected, idSelected } = props;
+  const [search, setSearch] = useState("");
 
+  //Handle Delete
+  const { numSelected, idSelected } = props;
   const handleDelete = () => {
     dispatch(districtActions.delete(idSelected));
     props.setSelected([]);
+  };
+
+  //Handle Search
+  const onSearch = () => {
+    dispatch(districtActions.getAll(`?search=${search}`));
+  };
+  const keyEnter = (e) => {
+    if (e.key === "Enter") onSearch(e);
   };
 
   return (
@@ -270,26 +282,13 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyPress={keyEnter}
               />
             </div>
           </Grid>
           <Grid item>
-            {/* <Hidden xsDown>
-              <Button
-                component={Link}
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                to="/products-add"
-              >
-                Create
-              </Button>
-            </Hidden>
-            <Hidden smUp>
-              <IconButton color="primary" aria-label="add-btn" component="span">
-                <AddIcon />
-              </IconButton>
-            </Hidden> */}
             <DistrictAddModal />
           </Grid>
           <Grid item>
@@ -426,9 +425,10 @@ export default function CategoryList() {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  const emptyRows =
-    rowsPerPage -
-      Math.min(rowsPerPage, districts.items.length - page * rowsPerPage) || 0;
+  const emptyRows = districts.items
+    ? rowsPerPage -
+      Math.min(rowsPerPage, districts.items.length - page * rowsPerPage)
+    : 0;
 
   //Main functions
   //>>load district
@@ -448,6 +448,15 @@ export default function CategoryList() {
 
           <Typography color="textPrimary">District List</Typography>
         </Breadcrumbs>
+
+        {/* Success & Error handling */}
+        {districts.error && (
+          <CustomAlert
+            openError={true}
+            messageError={districts.error}
+          ></CustomAlert>
+        )}
+        {districts.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
         {/* District table */}
         <Paper className={classes.paper}>
@@ -473,7 +482,7 @@ export default function CategoryList() {
                   orderBy={orderBy}
                   onSelectAllClick={handleSelectAllClick}
                   onRequestSort={handleRequestSort}
-                  rowCount={districts.items.length || 0}
+                  rowCount={(districts.items && districts.items.length) || 0}
                 />
                 <TableBody>
                   {stableSort(districts.items, getComparator(order, orderBy))
@@ -575,17 +584,20 @@ export default function CategoryList() {
                 </Card>
               ))}
           </Hidden>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={districts.items.length || 0}
-            rowsPerPage={rowsPerPage}
-            labelRowsPerPage={"Rows:"}
-            page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
-          />
+          {!districts.loading ? (
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={districts.items.length || 0}
+              rowsPerPage={rowsPerPage}
+              labelRowsPerPage={"Rows:"}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
+          ) : (
+            <Skeleton variant="rect" height={100} />
+          )}
         </Paper>
       </React.Fragment>
     </AdminLayout>

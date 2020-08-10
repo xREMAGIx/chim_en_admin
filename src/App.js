@@ -24,7 +24,7 @@ import DistrictList from "./containers/District/DistrictList";
 import CityList from "./containers/City/CityList";
 
 //Redux
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { userActions } from "./actions";
 
 //Theme

@@ -15,18 +15,19 @@ function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
     await orderService.getAll(url).then(
-      (orders) => dispatch(success(orders)),
+      (orders) => {
+        dispatch(success(orders));
+      },
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -48,16 +49,15 @@ function getAllNonPagination() {
     await orderService.getAllNonPagination().then(
       (orders) => dispatch(success(orders)),
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -104,7 +104,15 @@ function add(order, image) {
         history.replace({ pathname: "/orders", state: 201 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -120,16 +128,24 @@ function add(order, image) {
   }
 }
 
-function update(id, order, image, delImageId) {
+function update(id, order) {
   return async (dispatch) => {
     dispatch(request(id));
-    await orderService.update(id, order, image, delImageId).then(
+    await orderService.update(id, order).then(
       (order) => {
         dispatch(success(id));
         history.push({ pathname: "/orders", state: 202 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -151,11 +167,19 @@ function _delete(id) {
     dispatch(request(id));
     await orderService.delete(id).then(
       () => {
-        dispatch(success(id[0]));
+        dispatch(success(id));
         history.replace({ pathname: "/orders", state: 203 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };

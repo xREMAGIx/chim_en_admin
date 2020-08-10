@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 //UI Components
@@ -52,8 +52,10 @@ export default function DistrictAddModal() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
+  //Redux
   const dispatch = useDispatch();
   const cities = useSelector((state) => state.cities);
+  const districts = useSelector((state) => state.districts);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -75,14 +77,17 @@ export default function DistrictAddModal() {
     setOpen(false);
   };
 
-  const onSubmit = async () => {
+  const onSubmit = () => {
     dispatch(districtActions.add(formData));
-    handleClose();
   };
 
   const keyPressed = (e) => {
     if (e.key === "Enter") onSubmit(e);
   };
+
+  useEffect(() => {
+    if (districts.success) handleClose();
+  }, [districts.success]);
 
   return (
     <React.Fragment>

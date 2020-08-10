@@ -1,5 +1,5 @@
 //Standard Modules
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { fade, lighten, makeStyles } from "@material-ui/core/styles";
@@ -39,81 +39,11 @@ import CardContent from "@material-ui/core/CardContent";
 
 //Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
 import { productActions } from "../../actions";
-
-//Fake Data
-function createData(image, sku, name, price, categories, status, date) {
-  return { image, sku, name, price, categories, status, date };
-}
-
-const rows = [
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Tao vang 2200v jajsd ldjalsdjlajdkljalsd jkajsdl",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-  createData(
-    "https://source.unsplash.com/featured/?{recycle},{paper}",
-    1,
-    "Cupcake",
-    1000,
-    "Cloth",
-    "Available",
-    new Date()
-  ),
-];
 
 const headCells = [
   {
@@ -289,11 +219,21 @@ const EnhancedTableToolbar = (props) => {
 
   const dispatch = useDispatch();
 
-  const { numSelected, idSelected } = props;
+  const [search, setSearch] = useState("");
 
+  //Handle Delete
+  const { numSelected, idSelected } = props;
   const handleDelete = () => {
     dispatch(productActions.delete(idSelected));
     props.setSelected([]);
+  };
+
+  //Handle Search
+  const onSearch = () => {
+    dispatch(productActions.getAll(`?search=${search}`));
+  };
+  const keyEnter = (e) => {
+    if (e.key === "Enter") onSearch(e);
   };
 
   return (
@@ -344,6 +284,8 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyPress={keyEnter}
               />
             </div>
           </Grid>
@@ -472,7 +414,7 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.id);
+      const newSelecteds = products.items.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -511,7 +453,8 @@ export default function ProductList() {
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
   const emptyRows =
-    rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+    rowsPerPage -
+      Math.min(rowsPerPage, products.items.length - page * rowsPerPage) || 0;
 
   //Chip function
   const handleChipClick = (e) => {
@@ -535,6 +478,15 @@ export default function ProductList() {
 
           <Typography color="textPrimary">Product List</Typography>
         </Breadcrumbs>
+
+        {/* Success & Error handling */}
+        {products.error && (
+          <CustomAlert
+            openError={true}
+            messageError={products.error}
+          ></CustomAlert>
+        )}
+        {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
         {/* Product table */}
         <Paper className={classes.paper}>
@@ -587,7 +539,7 @@ export default function ProductList() {
                   orderBy={orderBy}
                   onSelectAllClick={handleSelectAllClick}
                   onRequestSort={handleRequestSort}
-                  rowCount={rows.length}
+                  rowCount={products.items.length}
                 />
                 <TableBody>
                   {stableSort(products.items, getComparator(order, orderBy))
@@ -719,7 +671,7 @@ export default function ProductList() {
 
           {/* Table Mobile version */}
           <Hidden mdUp>
-            {rows
+            {products.items
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, index) => (
                 <Card
@@ -731,34 +683,41 @@ export default function ProductList() {
                     <Grid item xs={3} container alignItems="center">
                       <CardActionArea>
                         <CardMedia
-                          className={classes.cardMedia}
-                          image={row.image}
-                          title={row.name}
+                          //className={classes.cardMedia}
+                          component="img"
+                          src={
+                            (row.images.length > 0 && row.images[0].image) || ""
+                          }
+                          alt={"No data"}
                         />
                       </CardActionArea>
                     </Grid>
                     <Grid item xs={7}>
                       <CardContent className={classes.cardContent}>
                         <Typography gutterBottom variant="h6" component="h2">
-                          {row.name}
+                          {row.title}
                         </Typography>
                         <Typography variant="body1" component="p" gutterBottom>
                           Price: {row.price}
                         </Typography>
                         <Typography
-                          variant="body1"
-                          color="textPrimary"
-                          component="p"
-                          gutterBottom
-                        >
-                          Status: {row.status}
-                        </Typography>
-                        <Typography
                           variant="body2"
                           color="textPrimary"
                           component="p"
+                          style={{ marginBottom: 10 }}
                         >
                           Categories: {row.categories}
+                        </Typography>
+                        <Typography
+                          display="inline"
+                          variant="body2"
+                          className={clsx({
+                            [classes.status]: true,
+                            [classes.available]: row.active,
+                            [classes.unavailable]: !row.active,
+                          })}
+                        >
+                          {row.active ? "Available" : "Unavailable"}
                         </Typography>
                       </CardContent>
                     </Grid>
@@ -781,7 +740,7 @@ export default function ProductList() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={rows.length}
+            count={products.items.length || 0}
             rowsPerPage={rowsPerPage}
             labelRowsPerPage={"Rows:"}
             page={page}

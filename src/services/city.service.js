@@ -11,7 +11,7 @@ export const cityService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/cities/` : url;
+  const params = url === null ? `/api/cities/` : `/api/cities/` + url;
 
   return await axios.get(params).then(handleResponse);
 }

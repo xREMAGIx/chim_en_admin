@@ -15,7 +15,9 @@ function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
     await districtService.getAll(url).then(
-      (districts) => dispatch(success(districts)),
+      (districts) => {
+        dispatch(success(districts));
+      },
       (error) => {
         if (error.response && error.response.data) {
           let errorkey = Object.keys(error.response.data)[0];
@@ -143,7 +145,7 @@ function update(id, district) {
       (district) => {
         dispatch(success(id));
         dispatch(getAll());
-        history.push({ pathname: "/districts", state: 202 });
+        history.replace({ pathname: "/districts", state: 202 });
       },
       (error) => {
         if (error.response && error.response.data) {

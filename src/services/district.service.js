@@ -11,7 +11,7 @@ export const districtService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/districts/` : url;
+  const params = url === null ? `/api/districts/` : `/api/districts/` + url;
 
   return await axios.get(params).then(handleResponse);
 }

@@ -15,18 +15,19 @@ function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
     await categoryService.getAll(url).then(
-      (categories) => dispatch(success(categories)),
+      (categories) => {
+        dispatch(success(categories));
+      },
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -155,7 +156,15 @@ function _delete(id) {
         history.replace({ pathname: "/categories", state: 203 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };

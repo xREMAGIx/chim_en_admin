@@ -1,5 +1,5 @@
 //Standard Modules
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 import { fade, lighten, makeStyles } from "@material-ui/core/styles";
@@ -38,6 +38,7 @@ import CardContent from "@material-ui/core/CardContent";
 
 //Custom Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -260,8 +261,25 @@ const useToolbarStyles = makeStyles((theme) => ({
 
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
-  const { numSelected } = props;
 
+  const dispatch = useDispatch();
+
+  const [search, setSearch] = useState("");
+
+  //Handle Delete
+  const { numSelected, idSelected } = props;
+  const handleDelete = () => {
+    dispatch(orderActions.delete(idSelected));
+    props.setSelected([]);
+  };
+
+  //Handle Search
+  const onSearch = () => {
+    dispatch(orderActions.getAll(`?search=${search}`));
+  };
+  const keyEnter = (e) => {
+    if (e.key === "Enter") onSearch(e);
+  };
   return (
     <Toolbar
       className={clsx(classes.root, {
@@ -292,7 +310,7 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete">
+          <IconButton aria-label="delete" onClick={handleDelete}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -310,6 +328,8 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyPress={keyEnter}
               />
             </div>
           </Grid>
@@ -347,18 +367,6 @@ const EnhancedTableToolbar = (props) => {
 EnhancedTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
 };
-
-//Custom Functions
-function dateFormat(date) {
-  return new Intl.DateTimeFormat("en", {
-    second: "numeric",
-    minute: "numeric",
-    hour: "numeric",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(date));
-}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -428,7 +436,7 @@ export default function OrderList() {
   //>>Load all orders
   useEffect(() => {
     dispatch(orderActions.getAll());
-  }, []);
+  }, [dispatch]);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -502,9 +510,22 @@ export default function OrderList() {
           <Typography color="textPrimary">Order List</Typography>
         </Breadcrumbs>
 
+        {/* Success & Error handling */}
+        {orders.error && (
+          <CustomAlert
+            openError={true}
+            messageError={orders.error}
+          ></CustomAlert>
+        )}
+        {orders.success && <CustomAlert openSuccess={true}></CustomAlert>}
+
         {/* Product table */}
         <Paper className={classes.paper}>
-          <EnhancedTableToolbar numSelected={selected.length} />
+          <EnhancedTableToolbar
+            numSelected={selected.length}
+            idSelected={selected}
+            setSelected={setSelected}
+          />
           <Grid
             style={{ marginLeft: 8, marginBottom: 16 }}
             container
@@ -521,15 +542,22 @@ export default function OrderList() {
 
             <Grid item>
               <Chip
-                id="not_ordered"
-                label="Not Order Yet"
+                id="pending"
+                label="Pending"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
             <Grid item>
               <Chip
-                id="ordered"
-                label="Ordered"
+                id="processing"
+                label="Processing"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
+            <Grid item>
+              <Chip
+                id="complete"
+                label="Complete"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
@@ -557,13 +585,13 @@ export default function OrderList() {
                   {stableSort(orders.items, getComparator(order, orderBy))
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row, index) => {
-                      const isItemSelected = isSelected(index);
+                      const isItemSelected = isSelected(row.id);
                       const labelId = `enhanced-table-checkbox-${index}`;
 
                       return (
                         <TableRow
                           hover
-                          onClick={(event) => handleClick(event, index)}
+                          onClick={(event) => handleClick(event, row.id)}
                           role="checkbox"
                           aria-checked={isItemSelected}
                           tabIndex={-1}
@@ -598,19 +626,19 @@ export default function OrderList() {
                           {/* address */}
                           <TableCell>
                             {(row.customer_details &&
-                              row.customer_details.address) ||
+                              row.customer_details[0].address) ||
                               ""}
                           </TableCell>
                           {/* district */}
                           <TableCell>
                             {(row.customer_details &&
-                              row.customer_details.district) ||
+                              row.customer_details[0].district) ||
                               ""}
                           </TableCell>
                           {/* city */}
                           <TableCell>
                             {(row.customer_details &&
-                              row.customer_details.city) ||
+                              row.customer_details[0].city) ||
                               ""}
                           </TableCell>
                           {/* total */}

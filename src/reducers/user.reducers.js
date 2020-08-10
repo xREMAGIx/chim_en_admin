@@ -41,7 +41,6 @@ export function users(state = initialState, action) {
         loading: false,
       };
     case userConstants.REGISTER_FAILURE:
-      console.log(action);
       return { ...state, loading: false, error: action.error };
 
     case userConstants.LOGOUT:

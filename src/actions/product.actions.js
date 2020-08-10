@@ -15,18 +15,19 @@ function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
     await productService.getAll(url).then(
-      (products) => dispatch(success(products)),
+      (products) => {
+        dispatch(success(products));
+      },
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -48,16 +49,15 @@ function getAllNonPagination() {
     await productService.getAllNonPagination().then(
       (products) => dispatch(success(products)),
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -80,7 +80,17 @@ function getById(id) {
       (products) => {
         dispatch(success(products));
       },
-      (error) => dispatch(failure(error))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -104,7 +114,15 @@ function add(product, image) {
         history.push({ pathname: "/products", state: 201 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -129,7 +147,15 @@ function update(id, product, image, delImageId) {
         history.push({ pathname: "/products", state: 202 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -155,7 +181,15 @@ function _delete(id) {
         history.replace({ pathname: "/products", state: 203 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };

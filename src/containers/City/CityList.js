@@ -32,6 +32,7 @@ import CardContent from "@material-ui/core/CardContent";
 
 //Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 import CityAddModal from "./CityAdd";
 import CityEditModal from "./CityEdit";
 
@@ -203,11 +204,22 @@ const EnhancedTableToolbar = (props) => {
 
   const dispatch = useDispatch();
 
+  const [search, setSearch] = React.useState("");
+
+  //Handle Delete
   const { numSelected, idSelected } = props;
 
   const handleDelete = () => {
     dispatch(cityActions.delete(idSelected));
     props.setSelected([]);
+  };
+
+  //Handle Search
+  const onSearch = () => {
+    dispatch(cityActions.getAll(`?search=${search}`));
+  };
+  const keyEnter = (e) => {
+    if (e.key === "Enter") onSearch(e);
   };
 
   return (
@@ -258,6 +270,8 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyPress={keyEnter}
               />
             </div>
           </Grid>
@@ -434,6 +448,15 @@ export default function CityList() {
 
           <Typography color="textPrimary">City List</Typography>
         </Breadcrumbs>
+
+        {/* Success & Error handling */}
+        {cities.error && (
+          <CustomAlert
+            openError={true}
+            messageError={cities.error}
+          ></CustomAlert>
+        )}
+        {cities.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
         {/* District table */}
         <Paper className={classes.paper}>

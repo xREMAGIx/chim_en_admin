@@ -11,7 +11,7 @@ export const productService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/products/` : url;
+  const params = url === null ? `/api/products/` : `/api/products/` + url;
 
   return await axios.get(params).then(handleResponse);
 }
@@ -58,7 +58,6 @@ async function add(product, image) {
   //     console.log(error);
   //   }
   // } else {
-  console.log(body);
   return await axios
     .post("/api/products/", body, requestConfig)
     .then(handleResponse);
@@ -80,7 +79,6 @@ async function update(id, product, image, delImage) {
   };
 
   const body = JSON.stringify(product);
-  console.log(body);
 
   if (delImage.length > 0) {
     const imageRequestConfig = {
@@ -91,34 +89,22 @@ async function update(id, product, image, delImage) {
         ids: delImage,
       },
     };
-    try {
-      await axios.delete(`/api/products/images`, imageRequestConfig);
-    } catch (error) {
-      console.log(error);
-    }
+    await axios.delete(`/api/products/images`, imageRequestConfig);
   }
 
   if (imageData.get("images")) {
-    try {
-      await axios
-        .put(`/api/products/${id}/`, body, requestConfig)
-        .then(handleResponse);
-    } catch (error) {
-      console.log(error);
-    }
+    await axios
+      .put(`/api/products/${id}/`, body, requestConfig)
+      .then(handleResponse);
 
     const configFormData = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     };
-    try {
-      return await axios
-        .post("/api/products/images", imageData, configFormData)
-        .then(handleResponse);
-    } catch (error) {
-      console.log(error);
-    }
+    return await axios
+      .post("/api/products/images", imageData, configFormData)
+      .then(handleResponse);
   } else {
     return await axios
       .put(`/api/products/${id}/`, body, requestConfig)

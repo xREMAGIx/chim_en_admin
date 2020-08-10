@@ -15,18 +15,19 @@ function getAll(url) {
   return async (dispatch) => {
     dispatch(request());
     await cityService.getAll(url).then(
-      (cities) => dispatch(success(cities)),
+      (cities) => {
+        dispatch(success(cities));
+      },
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -48,16 +49,15 @@ function getAllNonPagination() {
     await cityService.getAllNonPagination().then(
       (cities) => dispatch(success(cities)),
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -80,7 +80,17 @@ function getById(id) {
       (cities) => {
         dispatch(success(cities));
       },
-      (error) => dispatch(failure(error))
+      (error) => {
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
+      }
     );
   };
 
@@ -104,7 +114,15 @@ function add(city) {
         history.replace({ pathname: "/cities", state: 201 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -128,10 +146,18 @@ function update(id, city) {
         dispatch(success(id));
         dispatch(getAll());
 
-        history.push({ pathname: "/cities", state: 202 });
+        history.replace({ pathname: "/cities", state: 202 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
@@ -157,7 +183,15 @@ function _delete(id) {
         history.replace({ pathname: "/cities", state: 203 });
       },
       (error) => {
-        dispatch(failure(error));
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
+
+          let errorValue = error.response.data[errorkey][0];
+
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };

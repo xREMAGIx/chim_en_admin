@@ -73,7 +73,6 @@ export default function CityAddModal() {
 
   const onSubmit = async () => {
     dispatch(cityActions.add(formData));
-    handleClose();
   };
 
   const keyPressed = (e) => {

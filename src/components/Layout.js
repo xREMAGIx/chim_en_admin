@@ -57,6 +57,7 @@ export default function AdminLayout({ children }) {
             <CustomDrawer onToggleTheme={false} />
             <main className={classes.content}>
               <div className={classes.appBarSpacer} />
+
               <Container maxWidth="xl" className={classes.container}>
                 {children}
               </Container>

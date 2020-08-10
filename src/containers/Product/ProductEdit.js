@@ -1,9 +1,7 @@
 //Standard Modules
 import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-import axios from "axios";
 
 //UI Components
 import Typography from "@material-ui/core/Typography";
@@ -32,12 +30,11 @@ import { Editor } from "@tinymce/tinymce-react";
 
 //Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
 import { productActions, categoryActions } from "../../actions";
-
-const backendUrl = "http://127.0.0.1:8000";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -95,28 +92,6 @@ const useStyles = makeStyles((theme) => ({
     border: "1px solid #ddd",
   },
 }));
-
-//Image upload for editor
-async function uploadImageCallBack(file) {
-  let imageData = new FormData();
-  imageData.append("image", file);
-  const configFormData = {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  };
-
-  try {
-    const res = await axios.post(
-      "/api/blog_images/",
-      imageData,
-      configFormData
-    );
-    return res.data;
-  } catch (error) {
-    console.log(error);
-  }
-}
 
 //Options
 const statusOption = [
@@ -261,6 +236,15 @@ export default function ProductEdit(props) {
           </Link>
           <Typography color="textPrimary">Product Edit</Typography>
         </Breadcrumbs>
+
+        {/* Success & Error handling */}
+        {products.error && (
+          <CustomAlert
+            openError={true}
+            messageError={products.error}
+          ></CustomAlert>
+        )}
+        {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
         {/* Main */}
         <Grid container direction="column" spacing={3}>
