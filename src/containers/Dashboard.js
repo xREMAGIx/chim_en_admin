@@ -14,12 +14,25 @@ import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import Collapse from "@material-ui/core/Collapse";
 import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import Tooltip from "@material-ui/core/Tooltip";
+import IconButton from "@material-ui/core/IconButton";
+import EditIcon from "@material-ui/icons/Edit";
 
 //Components
 import { history } from "../store";
 import AdminLayout from "../components/Layout";
 //>>Charts
 import OrdersChart from "../components/Charts/OrdersChart";
+
+//Redux
+import { useDispatch, useSelector } from "react-redux";
+import { productActions, userActions } from "../actions";
 
 const useStyles = makeStyles((theme) => ({
   sectionBtn: {
@@ -43,10 +56,33 @@ const useStyles = makeStyles((theme) => ({
       },
     },
   },
+  tableContainer: {
+    maxHeight: "50vh",
+  },
+  status: {
+    color: "white",
+    borderRadius: "10px",
+    padding: theme.spacing(1),
+  },
+  complete: {
+    backgroundColor: theme.palette.success.main,
+  },
+  processing: {
+    backgroundColor: theme.palette.info.main,
+  },
+  pending: {
+    backgroundColor: theme.palette.warning.main,
+  },
 }));
 
 export default function Dashboard() {
   const classes = useStyles();
+
+  //Redux
+  const dispatch = useDispatch();
+  const users = useSelector((state) => state.users);
+  const products = useSelector((state) => state.products);
+  const orders = useSelector((state) => state.orders);
 
   //Open login success snackbar
   const [open, setOpen] = useState(false);
@@ -59,7 +95,8 @@ export default function Dashboard() {
   };
   useEffect(() => {
     if (history.location.state === 200) setOpen(true);
-  }, []);
+    dispatch(productActions.getAllNonPagination());
+  }, [dispatch]);
 
   //Colapse
   const [openStatisticCollapse, setOpenStatisticCollapse] = useState(true);
@@ -75,6 +112,13 @@ export default function Dashboard() {
   const [openUserChartCollapse, setOpenUserChartCollapse] = useState(true);
   const handleUserChartCollapse = () => {
     setOpenUserChartCollapse(!openUserChartCollapse);
+  };
+
+  const [openLastestOrderCollapse, setOpenLastestOrderCollapse] = useState(
+    true
+  );
+  const handleLastestOrderCollapse = () => {
+    setOpenLastestOrderCollapse(!openLastestOrderCollapse);
   };
 
   return (
@@ -122,7 +166,9 @@ export default function Dashboard() {
                         severity="warning"
                         className={classes.statictisPaper}
                       >
-                        <Typography variant="h4">5</Typography>
+                        <Typography variant="h4">
+                          {products.count || 0}
+                        </Typography>
                         <Typography variant="h6">Products</Typography>
                         <Button component={Link} to="/products">
                           More info {">"}
@@ -137,7 +183,7 @@ export default function Dashboard() {
                         severity="success"
                         className={classes.statictisPaper}
                       >
-                        <Typography variant="h4">5</Typography>
+                        <Typography variant="h4">{users.count || 0}</Typography>
                         <Typography variant="h6">Users</Typography>
                         <Button component={Link} to="/users">
                           More info {">"}
@@ -167,7 +213,7 @@ export default function Dashboard() {
             {/* Order and user chart*/}
             <Grid item container spacing={3}>
               {/* Orders chart */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={12} md={6}>
                 <ButtonBase
                   className={classes.sectionBtn}
                   onClick={handleOrderChartCollapse}
@@ -191,7 +237,7 @@ export default function Dashboard() {
               </Grid>
 
               {/* Total chart */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={12} md={6}>
                 <ButtonBase
                   className={classes.sectionBtn}
                   onClick={handleUserChartCollapse}
@@ -207,6 +253,102 @@ export default function Dashboard() {
                   unmountOnExit
                 >
                   <Paper className={classes.padding} elevation={4}></Paper>
+                </Collapse>
+              </Grid>
+            </Grid>
+
+            {/* Lastest Order */}
+            <Grid item container spacing={2}>
+              <Grid item xs={12} sm={12} md={8}>
+                <ButtonBase
+                  className={classes.sectionBtn}
+                  onClick={handleLastestOrderCollapse}
+                >
+                  <Typography variant="h6">Lastest Order</Typography>
+                  {openLastestOrderCollapse ? <ExpandLess /> : <ExpandMore />}
+                </ButtonBase>
+                <Collapse
+                  in={openLastestOrderCollapse}
+                  timeout="auto"
+                  unmountOnExit
+                >
+                  <Paper
+                    className={classes.padding}
+                    style={{ height: 400 }}
+                    elevation={4}
+                  >
+                    <Button
+                      component={Link}
+                      to="/orders"
+                      color="secondary"
+                      variant="outlined"
+                    >
+                      View all orders
+                    </Button>
+                    <TableContainer className={classes.tableContainer}>
+                      <Table
+                        className={classes.table}
+                        aria-label="simple table"
+                        size={"small"}
+                      >
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Order ID</TableCell>
+                            <TableCell>Order status</TableCell>
+                            <TableCell>User</TableCell>
+                            <TableCell align="right">Amount</TableCell>
+                            <TableCell align="right">Create at</TableCell>
+                            <TableCell align="right">Action</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {orders.items.slice(0, 10).map((row) => (
+                            <TableRow key={row.id}>
+                              <TableCell component="th" scope="row">
+                                {row.id}
+                              </TableCell>
+                              <TableCell>
+                                <Typography
+                                  display="inline"
+                                  className={clsx({
+                                    [classes.status]: true,
+                                    [classes.complete]:
+                                      row.status === "Complete",
+                                    [classes.processing]:
+                                      row.status === "Processing",
+                                    [classes.pending]: row.status === "Pending",
+                                  })}
+                                >
+                                  {row.status}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>{row.user}</TableCell>
+                              <TableCell align="right">
+                                {(row.amount || 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell align="right">
+                                {new Date(
+                                  row.created_at || {}
+                                ).toLocaleString()}
+                              </TableCell>
+                              <TableCell align="right">
+                                <Tooltip title="Edit" aria-label="edit">
+                                  <IconButton
+                                    size="small"
+                                    component={Link}
+                                    to={`/orders-edit/${row.id}`}
+                                    aria-label="edit"
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Paper>
                 </Collapse>
               </Grid>
             </Grid>

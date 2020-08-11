@@ -47,7 +47,7 @@ async function getAll(url = null) {
   const requestConfig = {
     //headers: authHeader()
   };
-  const params = url === null ? `/api/users` : url;
+  const params = url === null ? `/api/users` : `/api/users` + url;
 
   return await axios.get(params, requestConfig).then(handleResponse);
 }
@@ -56,7 +56,7 @@ async function getAllNonPagination() {
   const requestConfig = {
     //headers: authHeader(),
   };
-  return await axios.get(`/api/allUsers/`, requestConfig).then(handleResponse);
+  return await axios.get(`/api/users/`, requestConfig).then(handleResponse);
 }
 
 async function getById(id) {

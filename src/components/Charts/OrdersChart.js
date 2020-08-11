@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "@material-ui/core/styles";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Label,
@@ -24,7 +24,7 @@ export default function OrdersChart() {
 
   //>>Load all orders
   useEffect(() => {
-    dispatch(orderActions.getAll());
+    dispatch(orderActions.getAll(`?limit=1000`));
   }, [dispatch]);
 
   //Order chart Data
@@ -73,7 +73,7 @@ export default function OrdersChart() {
   return (
     <React.Fragment>
       <ResponsiveContainer>
-        <LineChart
+        <AreaChart
           data={orderData}
           margin={{
             top: 16,
@@ -82,6 +82,20 @@ export default function OrdersChart() {
             left: 24,
           }}
         >
+          <defs>
+            <linearGradient id="colorOrder" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor={theme.palette.primary.main}
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor={theme.palette.primary.main}
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
           <XAxis dataKey="day" stroke={theme.palette.text.secondary} />
           <YAxis stroke={theme.palette.text.secondary}>
             <Label
@@ -94,14 +108,15 @@ export default function OrdersChart() {
           </YAxis>
           <Tooltip />
           <Legend />
-          <Line
+
+          <Area
             type="monotone"
             dataKey="numberOfOrders"
             stroke={theme.palette.primary.main}
-            dot={false}
+            fillOpacity={1}
+            fill="url(#colorOrder)"
           />
-          /
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </React.Fragment>
   );

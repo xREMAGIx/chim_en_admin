@@ -21,46 +21,37 @@ import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
+import Button from "@material-ui/core/Button";
 import DeleteIcon from "@material-ui/icons/Delete";
 import FilterListIcon from "@material-ui/icons/FilterList";
+import AddIcon from "@material-ui/icons/Add";
 import Hidden from "@material-ui/core/Hidden";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
+import Chip from "@material-ui/core/Chip";
+import EditIcon from "@material-ui/icons/Edit";
 import Card from "@material-ui/core/Card";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
-import Skeleton from "@material-ui/lab/Skeleton";
 
 //Components
 import AdminLayout from "../../components/Layout";
-import DistrictAddModal from "./DistrictAdd";
-import DistrictEditModal from "./DistrictEdit";
 import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { districtActions, cityActions } from "../../actions";
+import { userActions, categoryActions } from "../../actions";
 
 const headCells = [
-  { id: "id", numeric: false, disablePadding: false, label: "District ID" },
   {
-    id: "name",
+    id: "username",
     numeric: false,
     disablePadding: false,
-    label: "District Name",
+    label: "Username",
   },
-  {
-    id: "city",
-    numeric: false,
-    disablePadding: false,
-    label: "City",
-  },
-  {
-    id: "ship_fee",
-    numeric: true,
-    disablePadding: false,
-    label: "Ship Fee",
-  },
+  { id: "email", numeric: false, disablePadding: false, label: "Email" },
+  { id: "is_staff", numeric: true, disablePadding: false, label: "Is Staff" },
+
   { id: "action", numeric: true, disablePadding: false, label: "Action" },
 ];
 
@@ -220,11 +211,10 @@ const EnhancedTableToolbar = (props) => {
   //Handle Delete
   const { numSelected, idSelected } = props;
   const handleDelete = () => {
-    dispatch(districtActions.delete(idSelected));
+    dispatch(userActions.delete(idSelected));
     props.setSelected([]);
   };
 
-  //Handle Search
   const keyEnter = (e) => {
     if (e.key === "Enter") props.onSearch(e);
   };
@@ -252,7 +242,7 @@ const EnhancedTableToolbar = (props) => {
             id="tableTitle"
             component="div"
           >
-            Districts
+            Users
           </Typography>
         </Hidden>
       )}
@@ -283,7 +273,22 @@ const EnhancedTableToolbar = (props) => {
             </div>
           </Grid>
           <Grid item>
-            <DistrictAddModal />
+            <Hidden xsDown>
+              <Button
+                component={Link}
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                to="/users-add"
+              >
+                Create
+              </Button>
+            </Hidden>
+            <Hidden smUp>
+              <IconButton color="primary" aria-label="add-btn" component="span">
+                <AddIcon />
+              </IconButton>
+            </Hidden>
           </Grid>
           <Grid item>
             <Tooltip title="Filter list">
@@ -359,14 +364,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function CategoryList() {
+export default function UserList() {
   //UI Hook
   const classes = useStyles();
 
   //Redux Hook
   const dispatch = useDispatch();
-  const districts = useSelector((state) => state.districts);
-  const cities = useSelector((state) => state.cities);
+  const users = useSelector((state) => state.users);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -384,7 +388,7 @@ export default function CategoryList() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = districts.items.map((n) => n.id);
+      const newSelecteds = users.items.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -422,30 +426,41 @@ export default function CategoryList() {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  const emptyRows = districts.items
-    ? rowsPerPage -
-      Math.min(rowsPerPage, districts.items.length - page * rowsPerPage)
-    : 0;
+  const emptyRows =
+    rowsPerPage -
+      Math.min(rowsPerPage, users.items.length - page * rowsPerPage) || 0;
 
   //Main functions
+  //*Filter
+  const [statusFilter, setStatusFilter] = useState("");
+  //Chip function
+  const handleChipClick = (e) => {
+    dispatch(
+      userActions.getAll(
+        `?search=${search}&limit=${rowsPerPage}&offset=0&active=${e.currentTarget.id}`
+      )
+    );
+    setStatusFilter(e.currentTarget.id);
+  };
+
   //*Search
   const [search, setSearch] = useState("");
   //Handle Search
   const onSearch = () => {
     dispatch(
-      districtActions.getAll(`?search=${search}&limit=${rowsPerPage}&offset=0`)
+      userActions.getAll(
+        `?search=${search}&limit=${rowsPerPage}&offset=0&active=${statusFilter}`
+      )
     );
     setPage(0);
   };
 
-  //*load districts (with Pagination) + load all cities
+  //*load user (with Pagination) + load category
   useEffect(() => {
     dispatch(
-      districtActions.getAll(
-        `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
-      )
+      userActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
     );
-    dispatch(cityActions.getAllNonPagination());
+    dispatch(categoryActions.getAllNonPagination());
   }, [dispatch, rowsPerPage, page]);
 
   return (
@@ -457,19 +472,19 @@ export default function CategoryList() {
             Dashboard
           </Link>
 
-          <Typography color="textPrimary">District List</Typography>
+          <Typography color="textPrimary">User List</Typography>
         </Breadcrumbs>
 
         {/* Success & Error handling */}
-        {districts.error && (
+        {users.error && (
           <CustomAlert
             openError={true}
-            messageError={districts.error}
+            messageError={users.error}
           ></CustomAlert>
         )}
-        {districts.success && <CustomAlert openSuccess={true}></CustomAlert>}
+        {users.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
-        {/* District table */}
+        {/* Product table */}
         <Paper className={classes.paper}>
           <EnhancedTableToolbar
             numSelected={selected.length}
@@ -478,7 +493,38 @@ export default function CategoryList() {
             setSearch={setSearch}
             onSearch={onSearch}
           />
+          {/* Filter Chip */}
+          <Grid
+            style={{ marginLeft: 8, marginBottom: 16 }}
+            container
+            spacing={2}
+          >
+            <Grid item>
+              <Chip
+                color={statusFilter === "" ? "secondary" : "default"}
+                id=""
+                label="All"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
 
+            <Grid item>
+              <Chip
+                color={statusFilter === "true" ? "secondary" : "default"}
+                id="true"
+                label="Available"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
+            <Grid item>
+              <Chip
+                color={statusFilter === "false" ? "secondary" : "default"}
+                id="false"
+                label="Unavailable"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
+          </Grid>
           {/* Table Desktop version */}
           <Hidden smDown>
             <TableContainer className={classes.tableContainer}>
@@ -496,55 +542,90 @@ export default function CategoryList() {
                   orderBy={orderBy}
                   onSelectAllClick={handleSelectAllClick}
                   onRequestSort={handleRequestSort}
-                  rowCount={(districts.items && districts.items.length) || 0}
+                  rowCount={users.items.length}
                 />
                 <TableBody>
-                  {stableSort(
-                    districts.items,
-                    getComparator(order, orderBy)
-                  ).map((row, index) => {
-                    const isItemSelected = isSelected(row.id);
-                    const labelId = `enhanced-table-checkbox-${index}`;
+                  {users.items.length > 0 &&
+                    stableSort(users.items, getComparator(order, orderBy)).map(
+                      (row, index) => {
+                        const isItemSelected = isSelected(row.id);
+                        const labelId = `enhanced-table-checkbox-${index}`;
 
-                    return (
-                      <TableRow
-                        hover
-                        onClick={(event) => handleClick(event, row.id)}
-                        role="checkbox"
-                        aria-checked={isItemSelected}
-                        tabIndex={-1}
-                        key={index}
-                        selected={isItemSelected}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            checked={isItemSelected}
-                            inputProps={{ "aria-labelledby": labelId }}
-                          />
-                        </TableCell>
+                        return (
+                          <TableRow
+                            hover
+                            onClick={(event) => handleClick(event, row.id)}
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            tabIndex={-1}
+                            key={index}
+                            selected={isItemSelected}
+                          >
+                            <TableCell padding="checkbox">
+                              <Checkbox
+                                checked={isItemSelected}
+                                inputProps={{ "aria-labelledby": labelId }}
+                              />
+                            </TableCell>
 
-                        <TableCell>{row.id}</TableCell>
-                        <TableCell>{row.name}</TableCell>
-                        <TableCell>
-                          {(
-                            cities.items.find((city) => city.id === row.city) ||
-                            {}
-                          ).name || row.city}
-                        </TableCell>
-                        <TableCell align="right">
-                          {row.ship_fee.toLocaleString()}
-                        </TableCell>
+                            <TableCell>{row.username}</TableCell>
 
-                        <TableCell align="right">
-                          <Grid container justify="flex-end">
-                            <Grid item>
-                              <DistrictEditModal id={row.id} />
-                            </Grid>
-                          </Grid>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                            <TableCell
+                              style={{
+                                maxWidth: "10vw",
+                                whiteSpace: "normal",
+                                wordWrap: "break-word",
+                              }}
+                              scope="row"
+                              padding="none"
+                            >
+                              <Grid item xs zeroMinWidth>
+                                <Tooltip
+                                  title={
+                                    <Typography variant="body2">
+                                      {row.email}
+                                    </Typography>
+                                  }
+                                >
+                                  <Typography variant="body2" noWrap>
+                                    {row.email}
+                                  </Typography>
+                                </Tooltip>
+                              </Grid>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography
+                                display="inline"
+                                variant="body2"
+                                className={clsx({
+                                  [classes.status]: true,
+                                  [classes.available]: row.active,
+                                  [classes.unavailable]: !row.active,
+                                })}
+                              >
+                                {row.is_staff ? "Staff" : "User"}
+                              </Typography>
+                            </TableCell>
+
+                            <TableCell align="right">
+                              <Grid container justify="flex-end">
+                                <Grid item>
+                                  <Tooltip title="Edit" aria-label="edit">
+                                    <IconButton
+                                      component={Link}
+                                      to={`/users-edit/${row.id}`}
+                                      aria-label="edit"
+                                    >
+                                      <EditIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Grid>
+                              </Grid>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                    )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 40 * emptyRows }}>
                       <TableCell colSpan={6} />
@@ -557,61 +638,66 @@ export default function CategoryList() {
 
           {/* Table Mobile version */}
           <Hidden mdUp>
-            {districts.items
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <Card
-                  variant="outlined"
-                  className={classes.cardRoot}
-                  key={index}
-                >
-                  <Grid container>
-                    <Grid item xs={8}>
-                      <CardContent className={classes.cardContent}>
-                        <Typography gutterBottom variant="h6" component="h2">
-                          Name: {row.title}
-                        </Typography>
-                        <Typography variant="body1" component="p" gutterBottom>
-                          ID: {row.id}
-                        </Typography>
-                      </CardContent>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={4}
-                      container
-                      direction="column"
-                      justify="center"
-                      alignItems="flex-end"
-                    >
-                      <DistrictEditModal id={row.id} />
-                      <IconButton
-                        aria-label="edit"
-                        onClick={() =>
-                          dispatch(districtActions.delete([row.id]))
-                        }
+            {users.items.map((row, index) => (
+              <Card variant="outlined" className={classes.cardRoot} key={index}>
+                <Grid container>
+                  <Grid item xs={3} container alignItems="center"></Grid>
+                  <Grid item xs={7}>
+                    <CardContent className={classes.cardContent}>
+                      <Typography gutterBottom variant="h6" component="h2">
+                        {row.title}
+                      </Typography>
+                      <Typography variant="body1" component="p" gutterBottom>
+                        Price: {row.price}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textPrimary"
+                        component="p"
+                        style={{ marginBottom: 10 }}
                       >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Grid>
+                        Categories: {}
+                      </Typography>
+                      <Typography
+                        display="inline"
+                        variant="body2"
+                        className={clsx({
+                          [classes.status]: true,
+                          [classes.available]: row.active,
+                          [classes.unavailable]: !row.active,
+                        })}
+                      >
+                        {row.active ? "Available" : "Unavailable"}
+                      </Typography>
+                    </CardContent>
                   </Grid>
-                </Card>
-              ))}
+                  <Grid
+                    item
+                    xs={2}
+                    container
+                    justify="flex-end"
+                    alignItems="flex-start"
+                  >
+                    <IconButton aria-label="edit">
+                      <EditIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Card>
+            ))}
           </Hidden>
-          {!districts.loading ? (
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={districts.items.length || 0}
-              rowsPerPage={rowsPerPage}
-              labelRowsPerPage={"Rows:"}
-              page={page}
-              onChangePage={handleChangePage}
-              onChangeRowsPerPage={handleChangeRowsPerPage}
-            />
-          ) : (
-            <Skeleton variant="rect" height={100} />
-          )}
+
+          {/* Pagination */}
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={users.count || 0}
+            rowsPerPage={rowsPerPage}
+            labelRowsPerPage={"Rows:"}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
         </Paper>
       </React.Fragment>
     </AdminLayout>

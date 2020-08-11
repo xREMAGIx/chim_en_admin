@@ -24,12 +24,38 @@ export function cities(state = initialState, action) {
         ...state,
         loading: false,
         success: true,
-        items: action.cities,
+        items: action.cities.results,
         count: action.cities.count,
         next: action.cities.next,
         previous: action.cities.previous,
       };
     case cityConstants.GETALL_FAILURE:
+      return {
+        ...state,
+        error: action.error,
+        loading: false,
+      };
+
+    //Non-pagination
+    // Get Reducers
+    case cityConstants.GETALL_NONPAGINATION_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: null,
+        error: null,
+      };
+    case cityConstants.GETALL_NONPAGINATION_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        items: action.cities,
+        count: action.cities.count,
+        next: action.cities.next,
+        previous: action.cities.previous,
+      };
+    case cityConstants.GETALL_NONPAGINATION_FAILURE:
       return {
         ...state,
         error: action.error,

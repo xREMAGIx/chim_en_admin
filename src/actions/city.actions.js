@@ -63,13 +63,13 @@ function getAllNonPagination() {
   };
 
   function request() {
-    return { type: cityConstants.GETALL_REQUEST };
+    return { type: cityConstants.GETALL_NONPAGINATION_REQUEST };
   }
   function success(cities) {
-    return { type: cityConstants.GETALL_SUCCESS, cities };
+    return { type: cityConstants.GETALL_NONPAGINATION_SUCCESS, cities };
   }
   function failure(error) {
-    return { type: cityConstants.GETALL_FAILURE, error };
+    return { type: cityConstants.GETALL_NONPAGINATION_FAILURE, error };
   }
 }
 

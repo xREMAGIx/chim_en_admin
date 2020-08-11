@@ -70,25 +70,6 @@ export function users(state = initialState, action) {
     case userConstants.GETME_FAILURE:
       return { error: action.error };
 
-    case userConstants.GETALL_REQUEST:
-      return {
-        ...state,
-        loading: true,
-      };
-    case userConstants.GETALL_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        error: null,
-        items: action.users.results,
-        next: action.users.next,
-        previous: action.users.previous,
-      };
-    case userConstants.GETALL_FAILURE:
-      return {
-        ...state,
-        error: action.error,
-      };
     case userConstants.DELETE_REQUEST:
       // add 'deleting:true' property to user being deleted
       return {
@@ -164,6 +145,56 @@ export function users(state = initialState, action) {
         ...state,
         loading: true,
       };
+
+    //Get all
+    case userConstants.GETALL_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: null,
+        error: null,
+      };
+    case userConstants.GETALL_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        items: action.users.results,
+        next: action.users.next,
+        previous: action.users.previous,
+      };
+    case userConstants.GETALL_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+      };
+
+    //Non-pagination
+    //Get all
+    case userConstants.GETALL_NONPAGINATION_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: null,
+        error: null,
+      };
+    case userConstants.GETALL_NONPAGINATION_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        items: action.users,
+        next: action.users.next,
+        previous: action.users.previous,
+      };
+    case userConstants.GETALL_NONPAGINATION_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+      };
+
     default:
       return state;
   }

@@ -63,13 +63,13 @@ function getAllNonPagination() {
   };
 
   function request() {
-    return { type: districtConstants.GETALL_REQUEST };
+    return { type: districtConstants.GETALL_NONPAGINATION_REQUEST };
   }
   function success(districts) {
-    return { type: districtConstants.GETALL_SUCCESS, districts };
+    return { type: districtConstants.GETALL_NONPAGINATION_SUCCESS, districts };
   }
   function failure(error) {
-    return { type: districtConstants.GETALL_FAILURE, error };
+    return { type: districtConstants.GETALL_NONPAGINATION_FAILURE, error };
   }
 }
 

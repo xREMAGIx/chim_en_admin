@@ -204,8 +204,6 @@ const EnhancedTableToolbar = (props) => {
 
   const dispatch = useDispatch();
 
-  const [search, setSearch] = React.useState("");
-
   //Handle Delete
   const { numSelected, idSelected } = props;
 
@@ -214,12 +212,8 @@ const EnhancedTableToolbar = (props) => {
     props.setSelected([]);
   };
 
-  //Handle Search
-  const onSearch = () => {
-    dispatch(cityActions.getAll(`?search=${search}`));
-  };
   const keyEnter = (e) => {
-    if (e.key === "Enter") onSearch(e);
+    if (e.key === "Enter") props.onSearch(e);
   };
 
   return (
@@ -270,7 +264,7 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => props.setSearch(e.target.value)}
                 onKeyPress={keyEnter}
               />
             </div>
@@ -315,6 +309,9 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     width: "100%",
     marginBottom: theme.spacing(2),
+  },
+  tableContainer: {
+    maxHeight: "50vh",
   },
   table: {
     minWidth: 750,
@@ -428,14 +425,25 @@ export default function CityList() {
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
   const emptyRows =
-    rowsPerPage -
-      Math.min(rowsPerPage, cities.items.length - page * rowsPerPage) || 0;
+    rowsPerPage - Math.min(rowsPerPage, cities.count - page * rowsPerPage) || 0;
 
   //Main functions
-  //>>load city
+  //*Search
+  const [search, setSearch] = React.useState("");
+  //Handle Search
+  const onSearch = () => {
+    dispatch(
+      cityActions.getAll(`?search=${search}&limit=${rowsPerPage}&offset=0`)
+    );
+    setPage(0);
+  };
+
+  //*load districts (with Pagination) + load all cities
   useEffect(() => {
-    dispatch(cityActions.getAll());
-  }, [dispatch]);
+    dispatch(
+      cityActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
+    );
+  }, [dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
@@ -464,11 +472,13 @@ export default function CityList() {
             numSelected={selected.length}
             idSelected={selected}
             setSelected={setSelected}
+            onSearch={onSearch}
+            setSearch={setSearch}
           />
 
           {/* Table Desktop version */}
           <Hidden smDown>
-            <TableContainer>
+            <TableContainer className={classes.tableContainer}>
               <Table
                 className={classes.table}
                 aria-labelledby="tableTitle"
@@ -485,9 +495,8 @@ export default function CityList() {
                   rowCount={cities.items.length || 0}
                 />
                 <TableBody>
-                  {stableSort(cities.items, getComparator(order, orderBy))
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, index) => {
+                  {stableSort(cities.items, getComparator(order, orderBy)).map(
+                    (row, index) => {
                       const isItemSelected = isSelected(row.id);
                       const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -520,7 +529,8 @@ export default function CityList() {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
+                    }
+                  )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 40 * emptyRows }}>
                       <TableCell colSpan={6} />
@@ -576,7 +586,7 @@ export default function CityList() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={cities.items.length || 0}
+            count={cities.count || 0}
             rowsPerPage={rowsPerPage}
             labelRowsPerPage={"Rows:"}
             page={page}

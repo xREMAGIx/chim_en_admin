@@ -26,13 +26,13 @@ import FilterListIcon from "@material-ui/icons/FilterList";
 import Hidden from "@material-ui/core/Hidden";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
-import EditIcon from "@material-ui/icons/Edit";
 import Card from "@material-ui/core/Card";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
 
 //Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 import CategoryAddModal from "./CategoryAdd";
 import CategoryEditModal from "./CategoryEdit";
 
@@ -100,7 +100,7 @@ function EnhancedTableHead(props) {
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
-            inputProps={{ "aria-label": "select all desserts" }}
+            inputProps={{ "aria-label": "select all category" }}
           />
         </TableCell>
         {headCells.map((headCell) => (
@@ -206,6 +206,15 @@ const EnhancedTableToolbar = (props) => {
 
   const { numSelected, idSelected } = props;
 
+  const handleDelete = () => {
+    dispatch(categoryActions.delete(idSelected));
+    props.setSelected([]);
+  };
+
+  const keyEnter = (e) => {
+    if (e.key === "Enter") props.onSearch(e);
+  };
+
   return (
     <Toolbar
       className={clsx(classes.root, {
@@ -236,13 +245,7 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton
-            aria-label="delete"
-            onClick={
-              (() => dispatch(categoryActions.delete(idSelected)),
-              props.setSelected([]))
-            }
-          >
+          <IconButton aria-label="delete" onClick={handleDelete}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -260,6 +263,8 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
+                onChange={(e) => props.setSearch(e.target.value)}
+                onKeyPress={keyEnter}
               />
             </div>
           </Grid>
@@ -298,18 +303,6 @@ const EnhancedTableToolbar = (props) => {
 EnhancedTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
 };
-
-//Custom Functions
-function dateFormat(date) {
-  return new Intl.DateTimeFormat("en-GB", {
-    // second: "numeric",
-    minute: "numeric",
-    hour: "numeric",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(date));
-}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -432,10 +425,24 @@ export default function CategoryList() {
       Math.min(rowsPerPage, categories.items.length - page * rowsPerPage) || 0;
 
   //Main functions
-  //>>load category
+  //*Search
+  const [search, setSearch] = React.useState("");
+  //>>Handle Search
+  const onSearch = () => {
+    dispatch(
+      categoryActions.getAll(`?search=${search}&limit=${rowsPerPage}&offset=0`)
+    );
+    setPage(0);
+  };
+
+  //*load orders (with Pagination)
   useEffect(() => {
-    dispatch(categoryActions.getAll());
-  }, [dispatch]);
+    dispatch(
+      categoryActions.getAll(
+        `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
+      )
+    );
+  }, [dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
@@ -449,12 +456,23 @@ export default function CategoryList() {
           <Typography color="textPrimary">Category List</Typography>
         </Breadcrumbs>
 
+        {/* Success & Error handling */}
+        {categories.error && (
+          <CustomAlert
+            openError={true}
+            messageError={categories.error}
+          ></CustomAlert>
+        )}
+        {categories.success && <CustomAlert openSuccess={true}></CustomAlert>}
+
         {/* Category table */}
         <Paper className={classes.paper}>
           <EnhancedTableToolbar
             numSelected={selected.length}
             idSelected={selected}
             setSelected={setSelected}
+            setSearch={setSearch}
+            onSearch={onSearch}
           />
 
           {/* Table Desktop version */}
@@ -476,43 +494,44 @@ export default function CategoryList() {
                   rowCount={categories.items.length || 0}
                 />
                 <TableBody>
-                  {stableSort(categories.items, getComparator(order, orderBy))
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, index) => {
-                      const isItemSelected = isSelected(row.id);
-                      const labelId = `enhanced-table-checkbox-${index}`;
+                  {stableSort(
+                    categories.items,
+                    getComparator(order, orderBy)
+                  ).map((row, index) => {
+                    const isItemSelected = isSelected(row.id);
+                    const labelId = `enhanced-table-checkbox-${index}`;
 
-                      return (
-                        <TableRow
-                          hover
-                          onClick={(event) => handleClick(event, row.id)}
-                          role="checkbox"
-                          aria-checked={isItemSelected}
-                          tabIndex={-1}
-                          key={index}
-                          selected={isItemSelected}
-                        >
-                          <TableCell padding="checkbox">
-                            <Checkbox
-                              checked={isItemSelected}
-                              inputProps={{ "aria-labelledby": labelId }}
-                            />
-                          </TableCell>
+                    return (
+                      <TableRow
+                        hover
+                        onClick={(event) => handleClick(event, row.id)}
+                        role="checkbox"
+                        aria-checked={isItemSelected}
+                        tabIndex={-1}
+                        key={index}
+                        selected={isItemSelected}
+                      >
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            checked={isItemSelected}
+                            inputProps={{ "aria-labelledby": labelId }}
+                          />
+                        </TableCell>
 
-                          <TableCell>{row.id}</TableCell>
+                        <TableCell>{row.id}</TableCell>
 
-                          <TableCell>{row.title}</TableCell>
+                        <TableCell>{row.title}</TableCell>
 
-                          <TableCell align="right">
-                            <Grid container justify="flex-end">
-                              <Grid item>
-                                <CategoryEditModal id={row.id} />
-                              </Grid>
+                        <TableCell align="right">
+                          <Grid container justify="flex-end">
+                            <Grid item>
+                              <CategoryEditModal id={row.id} />
                             </Grid>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                          </Grid>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 40 * emptyRows }}>
                       <TableCell colSpan={6} />
@@ -554,7 +573,7 @@ export default function CategoryList() {
                     >
                       <CategoryEditModal id={row.id} />
                       <IconButton
-                        aria-label="edit"
+                        aria-label="delete"
                         onClick={() =>
                           dispatch(categoryActions.delete([row.id]))
                         }
@@ -570,7 +589,7 @@ export default function CategoryList() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={categories.items.length || 0}
+            count={categories.count || 0}
             rowsPerPage={rowsPerPage}
             labelRowsPerPage={"Rows:"}
             page={page}

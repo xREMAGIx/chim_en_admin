@@ -24,12 +24,38 @@ export function districts(state = initialState, action) {
         ...state,
         loading: false,
         success: true,
-        items: action.districts,
+        items: action.districts.results,
         count: action.districts.count,
         next: action.districts.next,
         previous: action.districts.previous,
       };
     case districtConstants.GETALL_FAILURE:
+      return {
+        ...state,
+        error: action.error,
+        loading: false,
+      };
+
+    //Non-pagination
+    // Get Reducers
+    case districtConstants.GETALL_NONPAGINATION_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+        success: null,
+      };
+    case districtConstants.GETALL_NONPAGINATION_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        items: action.districts,
+        count: action.districts.count,
+        next: action.districts.next,
+        previous: action.districts.previous,
+      };
+    case districtConstants.GETALL_NONPAGINATION_FAILURE:
       return {
         ...state,
         error: action.error,

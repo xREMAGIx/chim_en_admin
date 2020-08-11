@@ -23,6 +23,9 @@ import OrderEdit from "./containers/Order/OrderEdit";
 import DistrictList from "./containers/District/DistrictList";
 //>>City
 import CityList from "./containers/City/CityList";
+//>>User
+import UserList from "./containers/User/UserList";
+import UserEdit from "./containers/User/UserEdit";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -98,6 +101,14 @@ const App = () => {
 
             {/* City */}
             <AdminRoute exact path="/cities" component={CityList}></AdminRoute>
+
+            {/* User */}
+            <AdminRoute exact path="/users" component={UserList}></AdminRoute>
+            <AdminRoute
+              exact
+              path="/users-edit/:id"
+              component={UserEdit}
+            ></AdminRoute>
           </Switch>
         </Router>
       </ThemeProvider>

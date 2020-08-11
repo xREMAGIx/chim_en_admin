@@ -11,7 +11,7 @@ export const categoryService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/categories/` : url;
+  const params = url === null ? `/api/categories/` : `/api/categories/` + url;
 
   return await axios.get(params).then(handleResponse);
 }
