@@ -24,12 +24,38 @@ export function products(state = initialState, action) {
         ...state,
         loading: false,
         success: true,
-        items: action.products,
+        items: action.products.results,
         count: action.products.count,
         next: action.products.next,
         previous: action.products.previous,
       };
     case productConstants.GETALL_FAILURE:
+      return {
+        ...state,
+        error: action.error,
+        loading: false,
+      };
+
+    //Non pagination
+    // Get Reducers
+    case productConstants.GETALL_NONPAGINATION_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: null,
+        error: null,
+      };
+    case productConstants.GETALL_NONPAGINATION_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        items: action.products,
+        count: action.products.count,
+        next: action.products.next,
+        previous: action.products.previous,
+      };
+    case productConstants.GETALL_NONPAGINATION_FAILURE:
       return {
         ...state,
         error: action.error,

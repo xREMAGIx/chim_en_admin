@@ -17,6 +17,7 @@ function getAll(url) {
     await categoryService.getAll(url).then(
       (categories) => {
         dispatch(success(categories));
+        history.replace({ pathname: history.location.pathname, state: 200 });
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -49,28 +50,27 @@ function getAllNonPagination() {
     await categoryService.getAllNonPagination().then(
       (categories) => dispatch(success(categories)),
       (error) => {
-        dispatch(failure(error));
-        // if (error.response && error.response.data) {
-        //   let errorkey = Object.keys(error.response.data)[0];
+        if (error.response && error.response.data) {
+          let errorkey = Object.keys(error.response.data)[0];
 
-        //   let errorValue = error.response.data[errorkey][0];
+          let errorValue = error.response.data[errorkey][0];
 
-        //   dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        // } else {
-        //   dispatch(failure(error.toString()));
-        // }
+          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
+        } else {
+          dispatch(failure(error.toString()));
+        }
       }
     );
   };
 
   function request() {
-    return { type: categoryConstants.GETALL_REQUEST };
+    return { type: categoryConstants.GETALL_NONPAGINATION_REQUEST };
   }
   function success(categories) {
-    return { type: categoryConstants.GETALL_SUCCESS, categories };
+    return { type: categoryConstants.GETALL_NONPAGINATION_SUCCESS, categories };
   }
   function failure(error) {
-    return { type: categoryConstants.GETALL_FAILURE, error };
+    return { type: categoryConstants.GETALL_NONPAGINATION_FAILURE, error };
   }
 }
 

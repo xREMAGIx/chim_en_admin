@@ -264,8 +264,6 @@ const EnhancedTableToolbar = (props) => {
 
   const dispatch = useDispatch();
 
-  const [search, setSearch] = useState("");
-
   //Handle Delete
   const { numSelected, idSelected } = props;
   const handleDelete = () => {
@@ -273,12 +271,8 @@ const EnhancedTableToolbar = (props) => {
     props.setSelected([]);
   };
 
-  //Handle Search
-  const onSearch = () => {
-    dispatch(orderActions.getAll(`?search=${search}`));
-  };
   const keyEnter = (e) => {
-    if (e.key === "Enter") onSearch(e);
+    if (e.key === "Enter") props.onSearch(e);
   };
   return (
     <Toolbar
@@ -328,7 +322,7 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => props.setSearch(e.target.value)}
                 onKeyPress={keyEnter}
               />
             </div>
@@ -433,11 +427,6 @@ export default function OrderList() {
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.orders);
 
-  //>>Load all orders
-  useEffect(() => {
-    dispatch(orderActions.getAll());
-  }, [dispatch]);
-
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
@@ -489,14 +478,42 @@ export default function OrderList() {
     setPage(0);
   };
 
-  const handleChipClick = (e) => {
-    console.log(e.currentTarget.id);
-  };
-
   const isSelected = (name) => selected.indexOf(name) !== -1;
 
   const emptyRows =
     rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
+
+  //Main functions
+  //*Filter
+  const [statusFilter, setStatusFilter] = useState("");
+  //Chip function
+  const handleChipClick = (e) => {
+    dispatch(
+      orderActions.getAll(
+        `?search=${search}&limit=${rowsPerPage}&offset=0&status=${e.currentTarget.id}`
+      )
+    );
+    setStatusFilter(e.currentTarget.id);
+  };
+
+  //*Search
+  const [search, setSearch] = useState("");
+  //>>Handle Search
+  const onSearch = () => {
+    dispatch(
+      orderActions.getAll(
+        `?search=${search}&limit=${rowsPerPage}&offset=0&status=${statusFilter}`
+      )
+    );
+    setPage(0);
+  };
+
+  //*load orders (with Pagination)
+  useEffect(() => {
+    dispatch(
+      orderActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
+    );
+  }, [dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
@@ -525,6 +542,8 @@ export default function OrderList() {
             numSelected={selected.length}
             idSelected={selected}
             setSelected={setSelected}
+            setSearch={setSearch}
+            onSearch={onSearch}
           />
           <Grid
             style={{ marginLeft: 8, marginBottom: 16 }}
@@ -533,8 +552,8 @@ export default function OrderList() {
           >
             <Grid item>
               <Chip
-                color="secondary"
-                id="all"
+                color={statusFilter === "" ? "secondary" : "default"}
+                id=""
                 label="All"
                 onClick={(e) => handleChipClick(e)}
               />
@@ -542,21 +561,24 @@ export default function OrderList() {
 
             <Grid item>
               <Chip
-                id="pending"
+                color={statusFilter === "Pending" ? "secondary" : "default"}
+                id="Pending"
                 label="Pending"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
             <Grid item>
               <Chip
-                id="processing"
+                color={statusFilter === "Processing" ? "secondary" : "default"}
+                id="Processing"
                 label="Processing"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
             <Grid item>
               <Chip
-                id="complete"
+                color={statusFilter === "Complete" ? "secondary" : "default"}
+                id="Complete"
                 label="Complete"
                 onClick={(e) => handleChipClick(e)}
               />
@@ -582,9 +604,8 @@ export default function OrderList() {
                   rowCount={rows.length}
                 />
                 <TableBody>
-                  {stableSort(orders.items, getComparator(order, orderBy))
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, index) => {
+                  {stableSort(orders.items, getComparator(order, orderBy)).map(
+                    (row, index) => {
                       const isItemSelected = isSelected(row.id);
                       const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -632,7 +653,7 @@ export default function OrderList() {
                           {/* district */}
                           <TableCell>
                             {(row.customer_details &&
-                              row.customer_details[0].district) ||
+                              row.customer_details[0].dictrict) ||
                               ""}
                           </TableCell>
                           {/* city */}
@@ -669,7 +690,8 @@ export default function OrderList() {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
+                    }
+                  )}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 40 * emptyRows }}>
                       <TableCell colSpan={6} />
@@ -744,7 +766,7 @@ export default function OrderList() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={orders.items.length}
+            count={orders.count}
             rowsPerPage={rowsPerPage}
             labelRowsPerPage={"Rows:"}
             page={page}

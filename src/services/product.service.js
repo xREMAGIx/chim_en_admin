@@ -17,7 +17,7 @@ async function getAll(url = null) {
 }
 
 async function getAllNonPagination() {
-  return await axios.get(`/api/allProducts/`).then(handleResponse);
+  return await axios.get(`/api/products/`).then(handleResponse);
 }
 
 async function getById(id) {

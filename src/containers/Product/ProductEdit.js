@@ -108,7 +108,7 @@ export default function ProductEdit(props) {
   const categories = useSelector((state) => state.categories);
   //>>Load all categories
   useEffect(() => {
-    dispatch(categoryActions.getAll());
+    dispatch(categoryActions.getAllNonPagination());
   }, [dispatch]);
   //>>Load Product Edit
   useEffect(() => {
@@ -212,7 +212,7 @@ export default function ProductEdit(props) {
     dispatch(
       productActions.update(
         props.match.params.id,
-        { ...formData, category: formData.category.id },
+        { ...formData, category: formData.category },
         image,
         delImage
       )
@@ -381,7 +381,7 @@ export default function ProductEdit(props) {
                         ) || null
                       }
                       onChange={(e, newValue) =>
-                        setFormData({ ...formData, category: newValue })
+                        setFormData({ ...formData, category: newValue.id })
                       }
                       getOptionLabel={(option) => option.title}
                       renderInput={(params) => (

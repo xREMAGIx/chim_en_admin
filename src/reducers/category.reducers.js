@@ -23,13 +23,39 @@ export function categories(state = initialState, action) {
       return {
         ...state,
         loading: false,
-        items: action.categories,
+        items: action.categories.results,
         count: action.categories.count,
         next: action.categories.next,
         previous: action.categories.previous,
         success: true,
       };
     case categoryConstants.GETALL_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+      };
+
+    //Non-pagination
+    // Get Reducers
+    case categoryConstants.GETALL_NONPAGINATION_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: null,
+        error: null,
+      };
+    case categoryConstants.GETALL_NONPAGINATION_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        items: action.categories,
+        count: action.categories.count,
+        next: action.categories.next,
+        previous: action.categories.previous,
+        success: true,
+      };
+    case categoryConstants.GETALL_NONPAGINATION_FAILURE:
       return {
         ...state,
         loading: false,

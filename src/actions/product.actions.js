@@ -17,6 +17,7 @@ function getAll(url) {
     await productService.getAll(url).then(
       (products) => {
         dispatch(success(products));
+        history.replace({ pathname: history.location.pathname, state: 200 });
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -63,13 +64,13 @@ function getAllNonPagination() {
   };
 
   function request() {
-    return { type: productConstants.GETALL_REQUEST };
+    return { type: productConstants.GETALL_NONPAGINATION_REQUEST };
   }
   function success(products) {
-    return { type: productConstants.GETALL_SUCCESS, products };
+    return { type: productConstants.GETALL_NONPAGINATION_SUCCESS, products };
   }
   function failure(error) {
-    return { type: productConstants.GETALL_FAILURE, error };
+    return { type: productConstants.GETALL_NONPAGINATION_FAILURE, error };
   }
 }
 

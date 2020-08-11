@@ -5,6 +5,7 @@ export * from "./user.constants";
 export * from "./district.constants";
 export * from "./city.constants";
 
+//Theme
+export const themeConstants = { CHANGE_THEME: "CHANGE_THEME" };
+
 //const backendUrl = "https://nextjs-eshop-backend.herokuapp.com";
-const backendUrl = "http://127.0.0.1:8000";
-export default backendUrl;

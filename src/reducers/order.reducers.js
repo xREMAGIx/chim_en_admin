@@ -24,12 +24,38 @@ export function orders(state = initialState, action) {
         ...state,
         loading: false,
         success: true,
-        items: action.orders,
+        items: action.orders.results,
         count: action.orders.count,
         next: action.orders.next,
         previous: action.orders.previous,
       };
     case orderConstants.GETALL_FAILURE:
+      return {
+        ...state,
+        error: action.error,
+        loading: false,
+      };
+
+    //Non-pagination
+    // Get Reducers
+    case orderConstants.GETALL_NONPAGINATION_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: null,
+        error: null,
+      };
+    case orderConstants.GETALL_NONPAGINATION_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        items: action.orders,
+        count: action.orders.count,
+        next: action.orders.next,
+        previous: action.orders.previous,
+      };
+    case orderConstants.GETALL_NONPAGINATION_FAILURE:
       return {
         ...state,
         error: action.error,

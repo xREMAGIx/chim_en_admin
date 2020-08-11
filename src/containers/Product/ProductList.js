@@ -43,7 +43,7 @@ import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions } from "../../actions";
+import { productActions, categoryActions } from "../../actions";
 
 const headCells = [
   {
@@ -219,8 +219,6 @@ const EnhancedTableToolbar = (props) => {
 
   const dispatch = useDispatch();
 
-  const [search, setSearch] = useState("");
-
   //Handle Delete
   const { numSelected, idSelected } = props;
   const handleDelete = () => {
@@ -228,12 +226,8 @@ const EnhancedTableToolbar = (props) => {
     props.setSelected([]);
   };
 
-  //Handle Search
-  const onSearch = () => {
-    dispatch(productActions.getAll(`?search=${search}`));
-  };
   const keyEnter = (e) => {
-    if (e.key === "Enter") onSearch(e);
+    if (e.key === "Enter") props.onSearch(e);
   };
 
   return (
@@ -284,7 +278,7 @@ const EnhancedTableToolbar = (props) => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ "aria-label": "search" }}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => props.setSearch(e.target.value)}
                 onKeyPress={keyEnter}
               />
             </div>
@@ -340,6 +334,9 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     width: "100%",
     marginBottom: theme.spacing(2),
+  },
+  tableContainer: {
+    maxHeight: "50vh",
   },
   table: {
     minWidth: 750,
@@ -397,6 +394,7 @@ export default function ProductList() {
   //Redux Hook
   const dispatch = useDispatch();
   const products = useSelector((state) => state.products);
+  const categories = useSelector((state) => state.categories);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -456,16 +454,40 @@ export default function ProductList() {
     rowsPerPage -
       Math.min(rowsPerPage, products.items.length - page * rowsPerPage) || 0;
 
+  //Main functions
+  //*Filter
+  const [statusFilter, setStatusFilter] = useState("");
   //Chip function
   const handleChipClick = (e) => {
-    console.log(e.currentTarget.id);
+    dispatch(
+      productActions.getAll(
+        `?search=${search}&limit=${rowsPerPage}&offset=0&active=${e.currentTarget.id}`
+      )
+    );
+    setStatusFilter(e.currentTarget.id);
   };
 
-  //Main functions
-  //>>load product
+  //*Search
+  const [search, setSearch] = useState("");
+  //Handle Search
+  const onSearch = () => {
+    dispatch(
+      productActions.getAll(
+        `?search=${search}&limit=${rowsPerPage}&offset=0&active=${statusFilter}`
+      )
+    );
+    setPage(0);
+  };
+
+  //*load product (with Pagination) + load category
   useEffect(() => {
-    dispatch(productActions.getAll());
-  }, [dispatch]);
+    dispatch(
+      productActions.getAll(
+        `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
+      )
+    );
+    dispatch(categoryActions.getAllNonPagination());
+  }, [dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
@@ -494,7 +516,10 @@ export default function ProductList() {
             numSelected={selected.length}
             idSelected={selected}
             setSelected={setSelected}
+            setSearch={setSearch}
+            onSearch={onSearch}
           />
+          {/* Filter Chip */}
           <Grid
             style={{ marginLeft: 8, marginBottom: 16 }}
             container
@@ -502,31 +527,35 @@ export default function ProductList() {
           >
             <Grid item>
               <Chip
-                id="available"
+                color={statusFilter === "" ? "secondary" : "default"}
+                id=""
+                label="All"
+                onClick={(e) => handleChipClick(e)}
+              />
+            </Grid>
+
+            <Grid item>
+              <Chip
+                color={statusFilter === "true" ? "secondary" : "default"}
+                id="true"
                 label="Available"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
             <Grid item>
               <Chip
-                id="unavailable"
+                color={statusFilter === "false" ? "secondary" : "default"}
+                id="false"
                 label="Unavailable"
                 onClick={(e) => handleChipClick(e)}
               />
             </Grid>
-            <Grid item>
-              <Chip
-                id="discount"
-                label="Discount"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
           </Grid>
-
           {/* Table Desktop version */}
           <Hidden smDown>
-            <TableContainer>
+            <TableContainer className={classes.tableContainer}>
               <Table
+                stickyHeader
                 className={classes.table}
                 aria-labelledby="tableTitle"
                 size={"small"}
@@ -542,9 +571,11 @@ export default function ProductList() {
                   rowCount={products.items.length}
                 />
                 <TableBody>
-                  {stableSort(products.items, getComparator(order, orderBy))
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, index) => {
+                  {products.items.length > 0 &&
+                    stableSort(
+                      products.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
                       const isItemSelected = isSelected(row.id);
                       const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -605,7 +636,13 @@ export default function ProductList() {
                           <TableCell align="right">
                             {row.price.toLocaleString()}
                           </TableCell>
-                          <TableCell>{row.categories}</TableCell>
+                          <TableCell>
+                            {(
+                              categories.items.find(
+                                (element) => element.id === row.category
+                              ) || {}
+                            ).title || row.category}
+                          </TableCell>
                           <TableCell>
                             <Typography
                               display="inline"
@@ -668,79 +705,77 @@ export default function ProductList() {
               </Table>
             </TableContainer>
           </Hidden>
-
           {/* Table Mobile version */}
           <Hidden mdUp>
-            {products.items
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <Card
-                  variant="outlined"
-                  className={classes.cardRoot}
-                  key={index}
-                >
-                  <Grid container>
-                    <Grid item xs={3} container alignItems="center">
-                      <CardActionArea>
-                        <CardMedia
-                          //className={classes.cardMedia}
-                          component="img"
-                          src={
-                            (row.images.length > 0 && row.images[0].image) || ""
-                          }
-                          alt={"No data"}
-                        />
-                      </CardActionArea>
-                    </Grid>
-                    <Grid item xs={7}>
-                      <CardContent className={classes.cardContent}>
-                        <Typography gutterBottom variant="h6" component="h2">
-                          {row.title}
-                        </Typography>
-                        <Typography variant="body1" component="p" gutterBottom>
-                          Price: {row.price}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="textPrimary"
-                          component="p"
-                          style={{ marginBottom: 10 }}
-                        >
-                          Categories: {row.categories}
-                        </Typography>
-                        <Typography
-                          display="inline"
-                          variant="body2"
-                          className={clsx({
-                            [classes.status]: true,
-                            [classes.available]: row.active,
-                            [classes.unavailable]: !row.active,
-                          })}
-                        >
-                          {row.active ? "Available" : "Unavailable"}
-                        </Typography>
-                      </CardContent>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={2}
-                      container
-                      justify="flex-end"
-                      alignItems="flex-start"
-                    >
-                      <IconButton aria-label="edit">
-                        <EditIcon />
-                      </IconButton>
-                    </Grid>
+            {products.items.map((row, index) => (
+              <Card variant="outlined" className={classes.cardRoot} key={index}>
+                <Grid container>
+                  <Grid item xs={3} container alignItems="center">
+                    <CardActionArea>
+                      <CardMedia
+                        //className={classes.cardMedia}
+                        component="img"
+                        src={
+                          (row.images.length > 0 && row.images[0].image) || ""
+                        }
+                        alt={"No data"}
+                      />
+                    </CardActionArea>
                   </Grid>
-                </Card>
-              ))}
+                  <Grid item xs={7}>
+                    <CardContent className={classes.cardContent}>
+                      <Typography gutterBottom variant="h6" component="h2">
+                        {row.title}
+                      </Typography>
+                      <Typography variant="body1" component="p" gutterBottom>
+                        Price: {row.price}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textPrimary"
+                        component="p"
+                        style={{ marginBottom: 10 }}
+                      >
+                        Categories:{" "}
+                        {(
+                          categories.items.find(
+                            (element) => element.id === row.category
+                          ) || {}
+                        ).title || row.category}
+                      </Typography>
+                      <Typography
+                        display="inline"
+                        variant="body2"
+                        className={clsx({
+                          [classes.status]: true,
+                          [classes.available]: row.active,
+                          [classes.unavailable]: !row.active,
+                        })}
+                      >
+                        {row.active ? "Available" : "Unavailable"}
+                      </Typography>
+                    </CardContent>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={2}
+                    container
+                    justify="flex-end"
+                    alignItems="flex-start"
+                  >
+                    <IconButton aria-label="edit">
+                      <EditIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Card>
+            ))}
           </Hidden>
-
+          {/* Pagination */}
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={products.items.length || 0}
+            count={products.count || 0}
             rowsPerPage={rowsPerPage}
             labelRowsPerPage={"Rows:"}
             page={page}

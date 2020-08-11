@@ -335,7 +335,7 @@ export default function MainListItems(props) {
         placement="right"
         title={<Typography variant="body2">Setting</Typography>}
       >
-        <ListItem button component={Link} to="/users">
+        <ListItem button component={Link} to="/setting">
           <ListItemIcon>
             <SettingsIcon />
           </ListItemIcon>

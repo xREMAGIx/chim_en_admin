@@ -63,13 +63,13 @@ function getAllNonPagination() {
   };
 
   function request() {
-    return { type: orderConstants.GETALL_REQUEST };
+    return { type: orderConstants.GETALL_NONPAGINATION_REQUEST };
   }
   function success(orders) {
-    return { type: orderConstants.GETALL_SUCCESS, orders };
+    return { type: orderConstants.GETALL_NONPAGINATION_SUCCESS, orders };
   }
   function failure(error) {
-    return { type: orderConstants.GETALL_FAILURE, error };
+    return { type: orderConstants.GETALL_NONPAGINATION_FAILURE, error };
   }
 }
 
