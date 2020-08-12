@@ -1,6 +1,6 @@
 //Standard Modules
 import React, { useState, useEffect } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, fade } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 
 //UI Components
@@ -16,13 +16,14 @@ import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
 import Collapse from "@material-ui/core/Collapse";
 import Paper from "@material-ui/core/Paper";
-import Autocomplete from "@material-ui/lab/Autocomplete";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import InputBase from "@material-ui/core/InputBase";
+import SearchIcon from "@material-ui/icons/Search";
 
 //Components
 import AdminLayout from "../../components/Layout";
@@ -30,7 +31,8 @@ import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions, categoryActions } from "../../actions";
+import { userActions, permissionActions } from "../../actions";
+import { Checkbox } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -87,13 +89,49 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
     border: "1px solid #ddd",
   },
+  tableContainer: {
+    maxHeight: "50vh",
+  },
+  search: {
+    position: "relative",
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: fade(theme.palette.common.white, 0.15),
+    "&:hover": {
+      backgroundColor: fade(theme.palette.common.white, 0.25),
+    },
+    marginLeft: 0,
+    width: "100%",
+    [theme.breakpoints.up("sm")]: {
+      marginLeft: theme.spacing(1),
+      width: "auto",
+    },
+  },
+  searchIcon: {
+    padding: theme.spacing(0, 2),
+    height: "100%",
+    position: "absolute",
+    pointerEvents: "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inputRoot: {
+    color: "inherit",
+  },
+  inputInput: {
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("sm")]: {
+      width: "12ch",
+      "&:focus": {
+        width: "20ch",
+      },
+    },
+  },
 }));
-
-//Options
-const statusOption = [
-  { title: "Available", value: true },
-  { title: "Unavailable", value: false },
-];
 
 export default function UserEdit(props) {
   const classes = useStyles();
@@ -101,14 +139,15 @@ export default function UserEdit(props) {
   //Redux Hooks
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
+  const permissions = useSelector((state) => state.permissions);
 
-  //>>Load all categories
+  //>>Load all permission
   useEffect(() => {
-    dispatch(categoryActions.getAllNonPagination());
+    dispatch(permissionActions.getAllNonPagination());
   }, [dispatch]);
   //>>Load User Edit
   useEffect(() => {
-    dispatch(productActions.getById(props.match.params.id));
+    dispatch(userActions.getById(props.match.params.id));
   }, [dispatch, props.match.params.id]);
 
   //Colapse
@@ -124,16 +163,23 @@ export default function UserEdit(props) {
 
   //Main funtion
   const [formData, setFormData] = useState({
-    sku: "",
-    title: "",
-    price: 0,
-    description: "",
-    active: true,
-    slug: "",
+    username: "",
+    email: "",
+    first_name: "",
+    last_name: "",
+    gender: "",
+    date_of_birth: "",
     user_permissions: [],
   });
 
-  const { sku, title, price, description } = formData;
+  const {
+    username,
+    email,
+    first_name,
+    last_name,
+    gender,
+    date_of_birth,
+  } = formData;
 
   //>>Put item to form data
   useEffect(() => {
@@ -145,16 +191,48 @@ export default function UserEdit(props) {
   };
 
   const onSubmit = () => {
+    let user_permissions = formData.user_permissions;
     dispatch(
-      productActions.update(props.match.params.id, {
-        ...formData,
-        category: formData.category,
-      })
+      userActions.update(props.match.params.id, formData, user_permissions)
     );
   };
 
   const keyPressed = (e) => {
     if (e.key === "Enter") onSubmit(e);
+  };
+
+  //*Handle Permission
+  const handleCheckPermission = (row) => {
+    if (
+      formData.user_permissions &&
+      formData.user_permissions.find((element) => element.id === row.id)
+    )
+      setFormData({
+        ...formData,
+        user_permissions: formData.user_permissions.filter(
+          (item) => item.id !== row.id
+        ),
+      });
+    else
+      setFormData({
+        ...formData,
+        user_permissions: [...formData.user_permissions, row],
+      });
+  };
+
+  const handleCheckAll = () => {
+    setFormData({ ...formData, user_permissions: [...permissions.items] });
+  };
+
+  const handleCheckRemoveAll = () => {
+    setFormData({ ...formData, user_permissions: [] });
+  };
+
+  //>Simple search in permission table
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const onSearchTerm = (e) => {
+    if (e.key === "Enter") setSearchTerm(e.target.value);
   };
 
   return (
@@ -194,81 +272,82 @@ export default function UserEdit(props) {
             <Collapse in={openUserInfoCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
                 <Grid container spacing={2} justify="center">
-                  {/* sku */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="sku-text"
-                      fullWidth
-                      label="SKU"
-                      variant="outlined"
-                      value={sku || ""}
-                      name="sku"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e) => keyPressed(e)}
-                    />
-                  </Grid>
                   {/* name */}
                   <Grid item xs={12} sm={12} md={9}>
                     <TextField
                       id="name-text"
                       fullWidth
-                      label="User Name"
+                      label="Username"
                       variant="outlined"
-                      value={title || ""}
-                      name="title"
+                      value={username || ""}
+                      name="username"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />
                   </Grid>
-                  {/* category */}
-                  <Grid item xs={12} sm={12} md={9}></Grid>
-                  {/* short Description */}
+                  {/* email */}
                   <Grid item xs={12} sm={12} md={9}>
                     <TextField
-                      id="sdescription-text"
+                      id="email-text"
                       fullWidth
-                      label="Short Description"
+                      label="Email"
                       variant="outlined"
-                      value={description || ""}
-                      name="description"
+                      value={email || ""}
+                      name="email"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />
                   </Grid>
-                  {/* price */}
+                  {/* first name */}
                   <Grid item xs={12} sm={12} md={9}>
                     <TextField
-                      id="price-text"
-                      type="number"
+                      id="firstname-text"
                       fullWidth
-                      label="Price"
+                      label="First name"
                       variant="outlined"
-                      value={price || ""}
-                      name="price"
+                      value={first_name || ""}
+                      name="first_name"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />
                   </Grid>
-                  {/* active */}
+                  {/* last name */}
                   <Grid item xs={12} sm={12} md={9}>
-                    <Autocomplete
-                      id="combo-box-active"
+                    <TextField
+                      id="lastname-text"
                       fullWidth
-                      options={statusOption}
-                      value={
-                        formData.active ? statusOption[0] : statusOption[1]
-                      }
-                      onChange={(e, newValue) =>
-                        setFormData({ ...formData, active: newValue.value })
-                      }
-                      getOptionLabel={(option) => option.title}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Active"
-                          variant="outlined"
-                        />
-                      )}
+                      label="Last name"
+                      variant="outlined"
+                      value={last_name || ""}
+                      name="last_name"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e) => keyPressed(e)}
+                    />
+                  </Grid>
+                  {/* gender */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <TextField
+                      id="gender-text"
+                      fullWidth
+                      label="Gender"
+                      variant="outlined"
+                      value={gender || ""}
+                      name="gender"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e) => keyPressed(e)}
+                    />
+                  </Grid>
+                  {/* date of birth */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <TextField
+                      id="date-of-birth-text"
+                      fullWidth
+                      label="Date Of Birth"
+                      variant="outlined"
+                      value={date_of_birth || ""}
+                      name="date_of_birth"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e) => keyPressed(e)}
                     />
                   </Grid>
                 </Grid>
@@ -287,30 +366,81 @@ export default function UserEdit(props) {
             </ButtonBase>
             <Collapse in={openPermissionCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
-                <TableContainer component={Paper}>
-                  <Table className={classes.table} aria-label="simple table">
+                {/* actions */}
+                <Grid
+                  container
+                  justify="space-between"
+                  alignItems="center"
+                  spacing={2}
+                >
+                  <Grid item>
+                    <Button color="secondary" onClick={handleCheckAll}>
+                      Select All
+                    </Button>
+                    <Button onClick={handleCheckRemoveAll}>Deselect All</Button>
+                  </Grid>
+                  <Grid item>
+                    <div className={classes.search}>
+                      <div className={classes.searchIcon}>
+                        <SearchIcon />
+                      </div>
+                      <InputBase
+                        placeholder="Search…"
+                        classes={{
+                          root: classes.inputRoot,
+                          input: classes.inputInput,
+                        }}
+                        inputProps={{ "aria-label": "search" }}
+                        onKeyPress={onSearchTerm}
+                      />
+                    </div>
+                  </Grid>
+                </Grid>
+
+                {/* check permission table */}
+                <TableContainer className={classes.tableContainer}>
+                  <Table
+                    stickyHeader
+                    className={classes.table}
+                    aria-label="simple table"
+                    size="small"
+                  >
                     <TableHead>
                       <TableRow>
-                        <TableCell>Dessert (100g serving)</TableCell>
-                        <TableCell align="right">Calories</TableCell>
-                        <TableCell align="right">Fat&nbsp;(g)</TableCell>
-                        <TableCell align="right">Carbs&nbsp;(g)</TableCell>
-                        <TableCell align="right">Protein&nbsp;(g)</TableCell>
+                        <TableCell>ID</TableCell>
+                        <TableCell>Content type</TableCell>
+                        <TableCell>Name</TableCell>
+                        <TableCell align="right">Checkbox</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {users.items.length > 0 &&
-                        users.items.user_permissions.map((row) => (
-                          <TableRow key={row.name}>
-                            <TableCell component="th" scope="row">
-                              {row.name}
-                            </TableCell>
-                            <TableCell align="right">{row.calories}</TableCell>
-                            <TableCell align="right">{row.fat}</TableCell>
-                            <TableCell align="right">{row.carbs}</TableCell>
-                            <TableCell align="right">{row.protein}</TableCell>
-                          </TableRow>
-                        ))}
+                      {permissions.items.length > 0 &&
+                        permissions.items
+                          .filter((permission) =>
+                            permission.name.toLowerCase().includes(searchTerm)
+                          )
+                          .map((row, index) => (
+                            <TableRow key={index}>
+                              <TableCell component="th" scope="row">
+                                {row.id}
+                              </TableCell>
+                              <TableCell>{row.content_type}</TableCell>
+                              <TableCell>{row.name}</TableCell>
+                              <TableCell align="right">
+                                <Checkbox
+                                  checked={
+                                    formData.user_permissions &&
+                                    formData.user_permissions.find(
+                                      (element) => element.id === row.id
+                                    )
+                                      ? true
+                                      : false
+                                  }
+                                  onChange={() => handleCheckPermission(row)}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
                     </TableBody>
                   </Table>
                 </TableContainer>

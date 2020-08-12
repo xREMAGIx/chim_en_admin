@@ -25,7 +25,6 @@ import AccountTreeIcon from "@material-ui/icons/AccountTree";
 import BookIcon from "@material-ui/icons/Book";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
-import PeopleIcon from "@material-ui/icons/People";
 import LocationCityIcon from "@material-ui/icons/LocationCity";
 import StreetviewIcon from "@material-ui/icons/Streetview";
 
@@ -120,27 +119,6 @@ export default function MainListItems(props) {
               <ListItemText primary="Orders" />
             </ListItem>
           </Tooltip>
-        </List>
-        <List component="div" disablePadding>
-          <ListItem
-            className={classes.nested}
-            button
-            component={Link}
-            to="/users"
-          >
-            <Tooltip
-              disableFocusListener
-              disableTouchListener
-              arrow
-              placement="right"
-              title={<Typography variant="body2">Users</Typography>}
-            >
-              <ListItemIcon>
-                <PeopleIcon />
-              </ListItemIcon>
-            </Tooltip>
-            <ListItemText primary="Users" />
-          </ListItem>
         </List>
       </Collapse>
 
@@ -310,18 +288,20 @@ export default function MainListItems(props) {
             disableTouchListener
             arrow
             placement="right"
-            title={<Typography variant="body2">Authorization</Typography>}
+            title={
+              <Typography variant="body2">Users & Authorization</Typography>
+            }
           >
             <ListItem
               className={classes.nested}
               button
               component={Link}
-              to="/authorization"
+              to="/users"
             >
               <ListItemIcon>
                 <AccountTreeIcon />
               </ListItemIcon>
-              <ListItemText primary="Authorization" />
+              <ListItemText primary="Users & Authorization" />
             </ListItem>
           </Tooltip>
         </List>

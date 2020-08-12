@@ -428,7 +428,10 @@ export default function UserList() {
 
   const emptyRows =
     rowsPerPage -
-      Math.min(rowsPerPage, users.items.length - page * rowsPerPage) || 0;
+      Math.min(
+        rowsPerPage,
+        ((users.items && users.items.length) || 0) - page * rowsPerPage
+      ) || 0;
 
   //Main functions
   //*Filter
@@ -542,7 +545,7 @@ export default function UserList() {
                   orderBy={orderBy}
                   onSelectAllClick={handleSelectAllClick}
                   onRequestSort={handleRequestSort}
-                  rowCount={users.items.length}
+                  rowCount={(users.items && users.items.length) || 0}
                 />
                 <TableBody>
                   {users.items.length > 0 &&

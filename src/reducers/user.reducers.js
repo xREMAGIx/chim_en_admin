@@ -23,12 +23,13 @@ export function users(state = initialState, action) {
       localStorage.setItem("token", action.data.token);
       setAuthToken(localStorage.getItem("token"));
       return {
+        ...state,
         loading: false,
         isAuthenticated: true,
       };
     case userConstants.LOGIN_FAILURE:
       localStorage.removeItem("token");
-      return { error: action.error };
+      return { ...state, error: action.error };
 
     case userConstants.REGISTER_REQUEST:
       return {
@@ -68,7 +69,7 @@ export function users(state = initialState, action) {
         user: action.user,
       };
     case userConstants.GETME_FAILURE:
-      return { error: action.error };
+      return { ...state, error: action.error };
 
     case userConstants.DELETE_REQUEST:
       // add 'deleting:true' property to user being deleted
@@ -103,27 +104,33 @@ export function users(state = initialState, action) {
     case userConstants.UPDATE_REQUEST:
       return {
         ...state,
+        loading: true,
+        success: null,
+        error: null,
       };
     case userConstants.UPDATE_SUCCESS:
       return {
         ...state,
-        error: null,
+        loading: false,
+        success: true,
+        item: action.user,
       };
     case userConstants.UPDATE_FAILURE:
-      return { ...state, error: action.error };
+      return { ...state, loading: false, error: action.error };
 
     case userConstants.GETBYID_REQUEST:
       return {
         ...state,
         loading: true,
+        error: null,
+        success: null,
       };
     case userConstants.GETBYID_SUCCESS:
       return {
         ...state,
         loading: false,
-        error: null,
-
-        item: action.user.result,
+        success: true,
+        item: action.user,
       };
     case userConstants.GETBYID_ERROR:
       return { ...state, error: action.error };

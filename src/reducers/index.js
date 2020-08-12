@@ -5,6 +5,7 @@ import { orders } from "./order.reducers";
 import { users } from "./user.reducers";
 import { districts } from "./district.reducers";
 import { cities } from "./city.reducers";
+import { permissions } from "./permission.reducers";
 
 //Theme
 import { themeConstants } from "../constants";
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
   districts,
   cities,
   theme,
+  permissions,
 });
 
 export default rootReducer;

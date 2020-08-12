@@ -252,10 +252,10 @@ function getById(id) {
   }
 }
 
-function update(id, user, image) {
+function update(id, user, user_permissions) {
   return async (dispatch) => {
     dispatch(request(id));
-    await userService.update(id, user, image).then(
+    await userService.update(id, user, user_permissions).then(
       (id) => {
         dispatch(success(id));
 

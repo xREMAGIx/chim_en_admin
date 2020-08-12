@@ -7,6 +7,7 @@ export * from "./order.actions";
 export * from "./user.actions";
 export * from "./district.actions";
 export * from "./city.actions";
+export * from "./permission.actions";
 
 //Theme
 export const themeActions = {

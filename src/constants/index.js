@@ -4,6 +4,7 @@ export * from "./order.constants";
 export * from "./user.constants";
 export * from "./district.constants";
 export * from "./city.constants";
+export * from "./permission.constants";
 
 //Theme
 export const themeConstants = { CHANGE_THEME: "CHANGE_THEME" };

@@ -94,23 +94,22 @@ async function add(user) {
   await axios.post("/api/users/", body, config).then(handleResponse);
 }
 
-async function update(id, user) {
+async function update(id, user, user_permissions) {
   const requestConfig = {
     headers: {
-      //authHeader(),
       "Content-Type": "application/json",
     },
   };
 
-  user.is_staff === false
-    ? (user.is_staff = "False")
-    : (user.is_staff = "True");
+  const permissions = JSON.stringify({ user_permissions: user_permissions });
+  await axios
+    .post(`/api/users/${id}/set_permissions/`, permissions, requestConfig)
+    .then(handleResponse);
 
-  console.log(user.is_staff);
   const body = JSON.stringify(user);
 
-  return await axios
-    .put(`/api/users/${id}`, body, requestConfig)
+  await axios
+    .put(`/api/users/${id}/`, body, requestConfig)
     .then(handleResponse);
 }
 

@@ -4,3 +4,4 @@ export * from "./order.service";
 export * from "./user.service";
 export * from "./district.service";
 export * from "./city.service";
+export * from "./permission.service";

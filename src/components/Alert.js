@@ -4,6 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 //UI Components
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
+import Collapse from "@material-ui/core/Collapse";
 
 //Custom
 import { history } from "../store";
@@ -20,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
 export default function CustomAlert(props) {
   const classes = useStyles();
 
-  //Handle Success
+  //*Handle Success
   const [openSuccess, setOpenSuccess] = React.useState(
     props.openSuccess || false
   );
@@ -47,7 +48,7 @@ export default function CustomAlert(props) {
       }
   }, [openSuccess]);
 
-  //Handle Error
+  //*Handle Error
   const [openError, setOpenError] = React.useState(props.openError || false);
   const messageError = props.messageError || "";
 
@@ -60,8 +61,14 @@ export default function CustomAlert(props) {
     setOpenError(false);
   };
 
+  //*Hanlde Authority
+  const [openErrorAuthority, setOpenErrorAuthority] = React.useState(
+    props.openErrorAuthority || false
+  );
+
   return (
     <div className={classes.root}>
+      {/* Success Snackbar */}
       <Snackbar
         open={openSuccess}
         autoHideDuration={3000}
@@ -76,6 +83,8 @@ export default function CustomAlert(props) {
           {messageSuccess}
         </Alert>
       </Snackbar>
+
+      {/* Error Snackbar */}
       <Snackbar
         open={openError}
         autoHideDuration={6000}
@@ -94,6 +103,10 @@ export default function CustomAlert(props) {
           {messageError}
         </Alert>
       </Snackbar>
+
+      <Collapse in={openErrorAuthority}>
+        <Alert>Close me!</Alert>
+      </Collapse>
     </div>
   );
 }
