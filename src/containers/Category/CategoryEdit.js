@@ -80,7 +80,12 @@ export default function CategoryEditModal(props) {
   return (
     <div>
       <Tooltip title="Edit" aria-label="edit">
-        <IconButton aria-label="add-btn" component="span" onClick={handleOpen}>
+        <IconButton
+          aria-label="add-btn"
+          component="span"
+          onClick={handleOpen}
+          disabled={props.disable}
+        >
           <EditIcon />
         </IconButton>
       </Tooltip>

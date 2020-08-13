@@ -104,8 +104,11 @@ export default function CustomAlert(props) {
         </Alert>
       </Snackbar>
 
+      {/* Error Authority */}
       <Collapse in={openErrorAuthority}>
-        <Alert>Close me!</Alert>
+        <Alert severity="error" variant="filled">
+          Your access is denied! No Authority
+        </Alert>
       </Collapse>
     </div>
   );

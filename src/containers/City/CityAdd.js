@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function CityAddModal() {
+export default function CityAddModal(props) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
@@ -87,6 +87,7 @@ export default function CityAddModal() {
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleOpen}
+          disabled={props.disable}
         >
           Create
         </Button>
@@ -97,6 +98,7 @@ export default function CityAddModal() {
           aria-label="add-btn"
           component="span"
           onClick={handleOpen}
+          disabled={props.disable}
         >
           <AddIcon />
         </IconButton>

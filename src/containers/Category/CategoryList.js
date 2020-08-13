@@ -245,7 +245,11 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete" onClick={handleDelete}>
+          <IconButton
+            aria-label="delete"
+            onClick={handleDelete}
+            disabled={!props.deletePermission}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -269,23 +273,7 @@ const EnhancedTableToolbar = (props) => {
             </div>
           </Grid>
           <Grid item>
-            {/* <Hidden xsDown>
-              <Button
-                component={Link}
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                to="/products-add"
-              >
-                Create
-              </Button>
-            </Hidden>
-            <Hidden smUp>
-              <IconButton color="primary" aria-label="add-btn" component="span">
-                <AddIcon />
-              </IconButton>
-            </Hidden> */}
-            <CategoryAddModal />
+            <CategoryAddModal disable={!props.addPermission} />
           </Grid>
           <Grid item>
             <Tooltip title="Filter list">
@@ -365,6 +353,7 @@ export default function CategoryList() {
   //Redux Hook
   const dispatch = useDispatch();
   const categories = useSelector((state) => state.categories);
+  const user = useSelector((state) => state.users.user);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -425,6 +414,36 @@ export default function CategoryList() {
       Math.min(rowsPerPage, categories.items.length - page * rowsPerPage) || 0;
 
   //Main functions
+  //*Permission access
+  const viewPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "view_category"
+    )
+      ? true
+      : false;
+  const addPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "add_category"
+    )
+      ? true
+      : false;
+  const updatePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "change_category"
+    )
+      ? true
+      : false;
+  const deletePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "delete_category"
+    )
+      ? true
+      : false;
+
   //*Search
   const [search, setSearch] = React.useState("");
   //>>Handle Search
@@ -446,158 +465,171 @@ export default function CategoryList() {
 
   return (
     <AdminLayout>
-      <React.Fragment>
-        {/* Breadcrumb */}
-        <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
-          <Link className={classes.link} to="/">
-            Dashboard
-          </Link>
+      {viewPermission ? (
+        <React.Fragment>
+          {/* Breadcrumb */}
+          <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
+            <Link className={classes.link} to="/">
+              Dashboard
+            </Link>
 
-          <Typography color="textPrimary">Category List</Typography>
-        </Breadcrumbs>
+            <Typography color="textPrimary">Category List</Typography>
+          </Breadcrumbs>
 
-        {/* Success & Error handling */}
-        {categories.error && (
-          <CustomAlert
-            openError={true}
-            messageError={categories.error}
-          ></CustomAlert>
-        )}
-        {categories.success && <CustomAlert openSuccess={true}></CustomAlert>}
+          {/* Success & Error handling */}
+          {categories.error && (
+            <CustomAlert
+              openError={true}
+              messageError={categories.error}
+            ></CustomAlert>
+          )}
+          {categories.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
-        {/* Category table */}
-        <Paper className={classes.paper}>
-          <EnhancedTableToolbar
-            numSelected={selected.length}
-            idSelected={selected}
-            setSelected={setSelected}
-            setSearch={setSearch}
-            onSearch={onSearch}
-          />
+          {/* Category table */}
+          <Paper className={classes.paper}>
+            <EnhancedTableToolbar
+              numSelected={selected.length}
+              idSelected={selected}
+              setSelected={setSelected}
+              setSearch={setSearch}
+              onSearch={onSearch}
+              addPermission={addPermission}
+              deletePermission={deletePermission}
+            />
 
-          {/* Table Desktop version */}
-          <Hidden smDown>
-            <TableContainer>
-              <Table
-                className={classes.table}
-                aria-labelledby="tableTitle"
-                size={"small"}
-                aria-label="enhanced table"
-              >
-                <EnhancedTableHead
-                  classes={classes}
-                  numSelected={selected.length}
-                  order={order}
-                  orderBy={orderBy}
-                  onSelectAllClick={handleSelectAllClick}
-                  onRequestSort={handleRequestSort}
-                  rowCount={categories.items.length || 0}
-                />
-                <TableBody>
-                  {stableSort(
-                    categories.items,
-                    getComparator(order, orderBy)
-                  ).map((row, index) => {
-                    const isItemSelected = isSelected(row.id);
-                    const labelId = `enhanced-table-checkbox-${index}`;
-
-                    return (
-                      <TableRow
-                        hover
-                        onClick={(event) => handleClick(event, row.id)}
-                        role="checkbox"
-                        aria-checked={isItemSelected}
-                        tabIndex={-1}
-                        key={index}
-                        selected={isItemSelected}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            checked={isItemSelected}
-                            inputProps={{ "aria-labelledby": labelId }}
-                          />
-                        </TableCell>
-
-                        <TableCell>{row.id}</TableCell>
-
-                        <TableCell>{row.title}</TableCell>
-
-                        <TableCell align="right">
-                          <Grid container justify="flex-end">
-                            <Grid item>
-                              <CategoryEditModal id={row.id} />
-                            </Grid>
-                          </Grid>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 40 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Hidden>
-
-          {/* Table Mobile version */}
-          <Hidden mdUp>
-            {categories.items
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <Card
-                  variant="outlined"
-                  className={classes.cardRoot}
-                  key={index}
+            {/* Table Desktop version */}
+            <Hidden smDown>
+              <TableContainer>
+                <Table
+                  className={classes.table}
+                  aria-labelledby="tableTitle"
+                  size={"small"}
+                  aria-label="enhanced table"
                 >
-                  <Grid container>
-                    <Grid item xs={8}>
-                      <CardContent className={classes.cardContent}>
-                        <Typography gutterBottom variant="h6" component="h2">
-                          Name: {row.title}
-                        </Typography>
-                        <Typography variant="body1" component="p" gutterBottom>
-                          ID: {row.id}
-                        </Typography>
-                      </CardContent>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={4}
-                      container
-                      direction="column"
-                      justify="center"
-                      alignItems="flex-end"
-                    >
-                      <CategoryEditModal id={row.id} />
-                      <IconButton
-                        aria-label="delete"
-                        onClick={() =>
-                          dispatch(categoryActions.delete([row.id]))
-                        }
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
-                </Card>
-              ))}
-          </Hidden>
+                  <EnhancedTableHead
+                    classes={classes}
+                    numSelected={selected.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={categories.items.length || 0}
+                  />
+                  <TableBody>
+                    {stableSort(
+                      categories.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
+                      const isItemSelected = isSelected(row.id);
+                      const labelId = `enhanced-table-checkbox-${index}`;
 
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={categories.count || 0}
-            rowsPerPage={rowsPerPage}
-            labelRowsPerPage={"Rows:"}
-            page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
-          />
-        </Paper>
-      </React.Fragment>
+                      return (
+                        <TableRow
+                          hover
+                          onClick={(event) => handleClick(event, row.id)}
+                          role="checkbox"
+                          aria-checked={isItemSelected}
+                          tabIndex={-1}
+                          key={index}
+                          selected={isItemSelected}
+                        >
+                          <TableCell padding="checkbox">
+                            <Checkbox
+                              checked={isItemSelected}
+                              inputProps={{ "aria-labelledby": labelId }}
+                            />
+                          </TableCell>
+
+                          <TableCell>{row.id}</TableCell>
+
+                          <TableCell>{row.title}</TableCell>
+
+                          <TableCell align="right">
+                            <Grid container justify="flex-end">
+                              <Grid item>
+                                <CategoryEditModal
+                                  disable={!updatePermission}
+                                  id={row.id}
+                                />
+                              </Grid>
+                            </Grid>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 40 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Hidden>
+
+            {/* Table Mobile version */}
+            <Hidden mdUp>
+              {categories.items
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row, index) => (
+                  <Card
+                    variant="outlined"
+                    className={classes.cardRoot}
+                    key={index}
+                  >
+                    <Grid container>
+                      <Grid item xs={8}>
+                        <CardContent className={classes.cardContent}>
+                          <Typography gutterBottom variant="h6" component="h2">
+                            Name: {row.title}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            component="p"
+                            gutterBottom
+                          >
+                            ID: {row.id}
+                          </Typography>
+                        </CardContent>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={4}
+                        container
+                        direction="column"
+                        justify="center"
+                        alignItems="flex-end"
+                      >
+                        <CategoryEditModal id={row.id} />
+                        <IconButton
+                          aria-label="delete"
+                          onClick={() =>
+                            dispatch(categoryActions.delete([row.id]))
+                          }
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                ))}
+            </Hidden>
+
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={categories.count || 0}
+              rowsPerPage={rowsPerPage}
+              labelRowsPerPage={"Rows:"}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
+          </Paper>
+        </React.Fragment>
+      ) : (
+        <CustomAlert openErrorAuthority={true} />
+      )}
     </AdminLayout>
   );
 }

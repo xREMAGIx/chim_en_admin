@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function CategoryAddModal() {
+export default function CategoryAddModal(props) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
@@ -90,6 +90,7 @@ export default function CategoryAddModal() {
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleOpen}
+          disabled={props.disable}
         >
           Create
         </Button>
@@ -100,6 +101,7 @@ export default function CategoryAddModal() {
           aria-label="add-btn"
           component="span"
           onClick={handleOpen}
+          disabled={props.disable}
         >
           <AddIcon />
         </IconButton>

@@ -474,82 +474,89 @@ export default function ProductEdit(props) {
                     </Button>
                   </Grid> */}
                   {/* tiny editor */}
-                  <Editor
-                    initialValue={full_description}
-                    init={{
-                      selector: "textarea",
-                      menubar: false,
-                      plugins: [
-                        "advlist autolink lists link image charmap print preview hr anchor pagebreak",
-                        "searchreplace wordcount visualblocks visualchars code fullscreen",
-                        "insertdatetime media nonbreaking save table directionality",
-                        "emoticons template paste textpattern imagetools codesample toc",
-                      ],
-                      toolbar1:
-                        "undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media",
-                      toolbar2:
-                        "print preview media | forecolor backcolor emoticons | codesample",
-                      templates: [
-                        { title: "Test template 1", content: "Test 1" },
-                        { title: "Test template 2", content: "Test 2" },
-                      ],
+                  <Grid item xs={12} sm={12} md={9}>
+                    <Editor
+                      initialValue={full_description}
+                      init={{
+                        height: "80vh",
+                        width: "100%",
+                        selector: "textarea",
+                        menubar: false,
+                        plugins: [
+                          "advlist autolink lists link image charmap print preview hr anchor pagebreak",
+                          "searchreplace wordcount visualblocks visualchars code fullscreen",
+                          "insertdatetime media nonbreaking save table directionality",
+                          "emoticons template paste textpattern imagetools codesample toc",
+                        ],
+                        toolbar1:
+                          "undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media",
+                        toolbar2:
+                          "print preview media | forecolor backcolor emoticons | codesample",
+                        templates: [
+                          { title: "Test template 1", content: "Test 1" },
+                          { title: "Test template 2", content: "Test 2" },
+                        ],
 
-                      images_upload_url: "/",
-                      images_upload_handler: function (
-                        blobInfo,
-                        success,
-                        failure,
-                        progress
-                      ) {
-                        var xhr, formData;
+                        images_upload_url: "/",
+                        images_upload_handler: function (
+                          blobInfo,
+                          success,
+                          failure,
+                          progress
+                        ) {
+                          var xhr, formData;
 
-                        xhr = new XMLHttpRequest();
-                        xhr.withCredentials = false;
-                        xhr.open("POST", "/api/blog_images/");
+                          xhr = new XMLHttpRequest();
+                          xhr.withCredentials = false;
+                          xhr.open("POST", "/api/blog_images/");
 
-                        xhr.upload.onprogress = function (e) {
-                          progress((e.loaded / e.total) * 100);
-                        };
+                          xhr.upload.onprogress = function (e) {
+                            progress((e.loaded / e.total) * 100);
+                          };
 
-                        xhr.onload = function () {
-                          var json;
+                          xhr.onload = function () {
+                            var json;
 
-                          if (xhr.status < 200 || xhr.status >= 300) {
-                            failure("HTTP Error: " + xhr.status);
-                            return;
-                          }
+                            if (xhr.status < 200 || xhr.status >= 300) {
+                              failure("HTTP Error: " + xhr.status);
+                              return;
+                            }
 
-                          json = JSON.parse(xhr.responseText);
+                            json = JSON.parse(xhr.responseText);
 
-                          if (!json || typeof json.data.location != "string") {
-                            failure("Invalid JSON: " + xhr.responseText);
-                            return;
-                          }
+                            if (
+                              !json ||
+                              typeof json.data.location != "string"
+                            ) {
+                              failure("Invalid JSON: " + xhr.responseText);
+                              return;
+                            }
 
-                          success(json.data.location);
-                        };
+                            success(json.data.location);
+                          };
 
-                        xhr.onerror = function () {
-                          failure(
-                            "Image upload failed due to a XHR Transport error. Code: " +
-                              xhr.status
+                          xhr.onerror = function () {
+                            failure(
+                              "Image upload failed due to a XHR Transport error. Code: " +
+                                xhr.status
+                            );
+                          };
+
+                          formData = new FormData();
+                          formData.append(
+                            "image",
+                            blobInfo.blob(),
+                            blobInfo.filename()
                           );
-                        };
 
-                        formData = new FormData();
-                        formData.append(
-                          "image",
-                          blobInfo.blob(),
-                          blobInfo.filename()
-                        );
-
-                        xhr.send(formData);
-                      },
-                      relative_urls: false,
-                      automatic_uploads: false,
-                    }}
-                    onEditorChange={handleTinyEditorChange}
-                  />
+                          xhr.send(formData);
+                        },
+                        relative_urls: false,
+                        automatic_uploads: false,
+                      }}
+                      onEditorChange={handleTinyEditorChange}
+                    />
+                  </Grid>
                 </Grid>
               </Paper>
             </Collapse>

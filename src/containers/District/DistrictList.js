@@ -259,7 +259,11 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete" onClick={handleDelete}>
+          <IconButton
+            aria-label="delete"
+            disabled={!props.deletePermission}
+            onClick={handleDelete}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -283,7 +287,7 @@ const EnhancedTableToolbar = (props) => {
             </div>
           </Grid>
           <Grid item>
-            <DistrictAddModal />
+            <DistrictAddModal disable={!props.addPermission} />
           </Grid>
           <Grid item>
             <Tooltip title="Filter list">
@@ -359,7 +363,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function CategoryList() {
+export default function DistrictList() {
   //UI Hook
   const classes = useStyles();
 
@@ -367,6 +371,7 @@ export default function CategoryList() {
   const dispatch = useDispatch();
   const districts = useSelector((state) => state.districts);
   const cities = useSelector((state) => state.cities);
+  const user = useSelector((state) => state.users.user);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -428,6 +433,36 @@ export default function CategoryList() {
     : 0;
 
   //Main functions
+  //*Permission access
+  const viewPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "view_district"
+    )
+      ? true
+      : false;
+  const addPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "add_district"
+    )
+      ? true
+      : false;
+  const updatePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "change_district"
+    )
+      ? true
+      : false;
+  const deletePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "delete_district"
+    )
+      ? true
+      : false;
+
   //*Search
   const [search, setSearch] = useState("");
   //Handle Search
@@ -440,180 +475,196 @@ export default function CategoryList() {
 
   //*load districts (with Pagination) + load all cities
   useEffect(() => {
-    dispatch(
-      districtActions.getAll(
-        `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
-      )
-    );
-    dispatch(cityActions.getAllNonPagination());
-  }, [dispatch, rowsPerPage, page]);
+    if (viewPermission) {
+      dispatch(
+        districtActions.getAll(
+          `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
+        )
+      );
+      dispatch(cityActions.getAllNonPagination());
+    }
+  }, [viewPermission, dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
-      <React.Fragment>
-        {/* Breadcrumb */}
-        <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
-          <Link className={classes.link} to="/">
-            Dashboard
-          </Link>
+      {viewPermission ? (
+        <React.Fragment>
+          {/* Breadcrumb */}
+          <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
+            <Link className={classes.link} to="/">
+              Dashboard
+            </Link>
 
-          <Typography color="textPrimary">District List</Typography>
-        </Breadcrumbs>
+            <Typography color="textPrimary">District List</Typography>
+          </Breadcrumbs>
 
-        {/* Success & Error handling */}
-        {districts.error && (
-          <CustomAlert
-            openError={true}
-            messageError={districts.error}
-          ></CustomAlert>
-        )}
-        {districts.success && <CustomAlert openSuccess={true}></CustomAlert>}
-
-        {/* District table */}
-        <Paper className={classes.paper}>
-          <EnhancedTableToolbar
-            numSelected={selected.length}
-            idSelected={selected}
-            setSelected={setSelected}
-            setSearch={setSearch}
-            onSearch={onSearch}
-          />
-
-          {/* Table Desktop version */}
-          <Hidden smDown>
-            <TableContainer className={classes.tableContainer}>
-              <Table
-                stickyHeader
-                className={classes.table}
-                aria-labelledby="tableTitle"
-                size={"small"}
-                aria-label="enhanced table"
-              >
-                <EnhancedTableHead
-                  classes={classes}
-                  numSelected={selected.length}
-                  order={order}
-                  orderBy={orderBy}
-                  onSelectAllClick={handleSelectAllClick}
-                  onRequestSort={handleRequestSort}
-                  rowCount={(districts.items && districts.items.length) || 0}
-                />
-                <TableBody>
-                  {stableSort(
-                    districts.items,
-                    getComparator(order, orderBy)
-                  ).map((row, index) => {
-                    const isItemSelected = isSelected(row.id);
-                    const labelId = `enhanced-table-checkbox-${index}`;
-
-                    return (
-                      <TableRow
-                        hover
-                        onClick={(event) => handleClick(event, row.id)}
-                        role="checkbox"
-                        aria-checked={isItemSelected}
-                        tabIndex={-1}
-                        key={index}
-                        selected={isItemSelected}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox
-                            checked={isItemSelected}
-                            inputProps={{ "aria-labelledby": labelId }}
-                          />
-                        </TableCell>
-
-                        <TableCell>{row.id}</TableCell>
-                        <TableCell>{row.name}</TableCell>
-                        <TableCell>
-                          {(
-                            cities.items.find((city) => city.id === row.city) ||
-                            {}
-                          ).name || row.city}
-                        </TableCell>
-                        <TableCell align="right">
-                          {row.ship_fee.toLocaleString()}
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <Grid container justify="flex-end">
-                            <Grid item>
-                              <DistrictEditModal id={row.id} />
-                            </Grid>
-                          </Grid>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 40 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Hidden>
-
-          {/* Table Mobile version */}
-          <Hidden mdUp>
-            {districts.items
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <Card
-                  variant="outlined"
-                  className={classes.cardRoot}
-                  key={index}
-                >
-                  <Grid container>
-                    <Grid item xs={8}>
-                      <CardContent className={classes.cardContent}>
-                        <Typography gutterBottom variant="h6" component="h2">
-                          Name: {row.title}
-                        </Typography>
-                        <Typography variant="body1" component="p" gutterBottom>
-                          ID: {row.id}
-                        </Typography>
-                      </CardContent>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={4}
-                      container
-                      direction="column"
-                      justify="center"
-                      alignItems="flex-end"
-                    >
-                      <DistrictEditModal id={row.id} />
-                      <IconButton
-                        aria-label="edit"
-                        onClick={() =>
-                          dispatch(districtActions.delete([row.id]))
-                        }
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
-                </Card>
-              ))}
-          </Hidden>
-          {!districts.loading ? (
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={districts.items.length || 0}
-              rowsPerPage={rowsPerPage}
-              labelRowsPerPage={"Rows:"}
-              page={page}
-              onChangePage={handleChangePage}
-              onChangeRowsPerPage={handleChangeRowsPerPage}
-            />
-          ) : (
-            <Skeleton variant="rect" height={100} />
+          {/* Success & Error handling */}
+          {districts.error && (
+            <CustomAlert
+              openError={true}
+              messageError={districts.error}
+            ></CustomAlert>
           )}
-        </Paper>
-      </React.Fragment>
+          {districts.success && <CustomAlert openSuccess={true}></CustomAlert>}
+
+          {/* District table */}
+          <Paper className={classes.paper}>
+            <EnhancedTableToolbar
+              numSelected={selected.length}
+              idSelected={selected}
+              setSelected={setSelected}
+              setSearch={setSearch}
+              onSearch={onSearch}
+              addPermission={addPermission}
+              deletePermission={deletePermission}
+            />
+
+            {/* Table Desktop version */}
+            <Hidden smDown>
+              <TableContainer className={classes.tableContainer}>
+                <Table
+                  stickyHeader
+                  className={classes.table}
+                  aria-labelledby="tableTitle"
+                  size={"small"}
+                  aria-label="enhanced table"
+                >
+                  <EnhancedTableHead
+                    classes={classes}
+                    numSelected={selected.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={(districts.items && districts.items.length) || 0}
+                  />
+                  <TableBody>
+                    {stableSort(
+                      districts.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
+                      const isItemSelected = isSelected(row.id);
+                      const labelId = `enhanced-table-checkbox-${index}`;
+
+                      return (
+                        <TableRow
+                          hover
+                          onClick={(event) => handleClick(event, row.id)}
+                          role="checkbox"
+                          aria-checked={isItemSelected}
+                          tabIndex={-1}
+                          key={index}
+                          selected={isItemSelected}
+                        >
+                          <TableCell padding="checkbox">
+                            <Checkbox
+                              checked={isItemSelected}
+                              inputProps={{ "aria-labelledby": labelId }}
+                            />
+                          </TableCell>
+
+                          <TableCell>{row.id}</TableCell>
+                          <TableCell>{row.name}</TableCell>
+                          <TableCell>
+                            {(
+                              cities.items.find(
+                                (city) => city.id === row.city
+                              ) || {}
+                            ).name || row.city}
+                          </TableCell>
+                          <TableCell align="right">
+                            {row.ship_fee.toLocaleString()}
+                          </TableCell>
+
+                          <TableCell align="right">
+                            <Grid container justify="flex-end">
+                              <Grid item>
+                                <DistrictEditModal
+                                  disable={!updatePermission}
+                                  id={row.id}
+                                />
+                              </Grid>
+                            </Grid>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 40 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Hidden>
+
+            {/* Table Mobile version */}
+            <Hidden mdUp>
+              {districts.items
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row, index) => (
+                  <Card
+                    variant="outlined"
+                    className={classes.cardRoot}
+                    key={index}
+                  >
+                    <Grid container>
+                      <Grid item xs={8}>
+                        <CardContent className={classes.cardContent}>
+                          <Typography gutterBottom variant="h6" component="h2">
+                            Name: {row.title}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            component="p"
+                            gutterBottom
+                          >
+                            ID: {row.id}
+                          </Typography>
+                        </CardContent>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={4}
+                        container
+                        direction="column"
+                        justify="center"
+                        alignItems="flex-end"
+                      >
+                        <DistrictEditModal id={row.id} />
+                        <IconButton
+                          aria-label="edit"
+                          onClick={() =>
+                            dispatch(districtActions.delete([row.id]))
+                          }
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                ))}
+            </Hidden>
+            {!districts.loading ? (
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={districts.items.length || 0}
+                rowsPerPage={rowsPerPage}
+                labelRowsPerPage={"Rows:"}
+                page={page}
+                onChangePage={handleChangePage}
+                onChangeRowsPerPage={handleChangeRowsPerPage}
+              />
+            ) : (
+              <Skeleton variant="rect" height={100} />
+            )}
+          </Paper>
+        </React.Fragment>
+      ) : (
+        <CustomAlert openErrorAuthority={true} />
+      )}
     </AdminLayout>
   );
 }

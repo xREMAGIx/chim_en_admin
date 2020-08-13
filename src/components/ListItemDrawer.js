@@ -22,7 +22,6 @@ import CategoryIcon from "@material-ui/icons/Category";
 import SettingsIcon from "@material-ui/icons/Settings";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import AccountTreeIcon from "@material-ui/icons/AccountTree";
-import BookIcon from "@material-ui/icons/Book";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import LocationCityIcon from "@material-ui/icons/LocationCity";
@@ -239,27 +238,6 @@ export default function MainListItems(props) {
                 <CategoryIcon />
               </ListItemIcon>
               <ListItemText primary="Categories" />
-            </ListItem>
-          </Tooltip>
-        </List>
-        <List component="div" disablePadding>
-          <Tooltip
-            disableFocusListener
-            disableTouchListener
-            arrow
-            placement="right"
-            title={<Typography variant="body2">Blogs</Typography>}
-          >
-            <ListItem
-              className={classes.nested}
-              button
-              component={Link}
-              to="/blogs"
-            >
-              <ListItemIcon>
-                <BookIcon />
-              </ListItemIcon>
-              <ListItemText primary="Blogs" />
             </ListItem>
           </Tooltip>
         </List>

@@ -107,7 +107,7 @@ export default function ProductAdd() {
 
   //>>Load all categories
   useEffect(() => {
-    dispatch(categoryActions.getAll());
+    dispatch(categoryActions.getAllNonPagination());
   }, [dispatch]);
 
   //Colapse
@@ -193,300 +193,268 @@ export default function ProductAdd() {
         {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
         {/* Main */}
-        <Grid container direction="column" spacing={3}>
-          {/* Product info */}
-          <Grid item>
-            <ButtonBase
-              className={classes.sectionBtn}
-              onClick={handleProductInfoCollapse}
-            >
-              <Typography variant="h6">Product Info</Typography>
-              {openProductInfoCollapse ? <ExpandLess /> : <ExpandMore />}
-            </ButtonBase>
-            <Collapse in={openProductInfoCollapse} timeout="auto" unmountOnExit>
-              <Paper className={classes.padding} elevation={4}>
-                <Grid container spacing={2} justify="center">
-                  {/* sku */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="sku-text"
-                      fullWidth
-                      label="SKU"
-                      variant="outlined"
-                      value={sku}
-                      name="sku"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e) => keyPressed(e)}
-                    />
+        {categories.items && (
+          <Grid container direction="column" spacing={3}>
+            {/* Product info */}
+            <Grid item>
+              <ButtonBase
+                className={classes.sectionBtn}
+                onClick={handleProductInfoCollapse}
+              >
+                <Typography variant="h6">Product Info</Typography>
+                {openProductInfoCollapse ? <ExpandLess /> : <ExpandMore />}
+              </ButtonBase>
+              <Collapse
+                in={openProductInfoCollapse}
+                timeout="auto"
+                unmountOnExit
+              >
+                <Paper className={classes.padding} elevation={4}>
+                  <Grid container spacing={2} justify="center">
+                    {/* sku */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="sku-text"
+                        fullWidth
+                        label="SKU"
+                        variant="outlined"
+                        value={sku}
+                        name="sku"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e) => keyPressed(e)}
+                      />
+                    </Grid>
+                    {/* name */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="name-text"
+                        fullWidth
+                        required
+                        label="Product Name"
+                        variant="outlined"
+                        value={title}
+                        name="title"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e) => keyPressed(e)}
+                      />
+                    </Grid>
+                    {/* category */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <Autocomplete
+                        id="combo-box-category"
+                        fullWidth
+                        options={categories.items}
+                        value={categories.items[0] || null}
+                        onChange={(e, newValue) =>
+                          setFormData({ ...formData, active: newValue.value })
+                        }
+                        getOptionLabel={(option) => option.title}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Category"
+                            variant="outlined"
+                          />
+                        )}
+                      />
+                    </Grid>
+                    {/* short Description */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="sdescription-text"
+                        fullWidth
+                        required
+                        label="Short Description"
+                        variant="outlined"
+                        value={description}
+                        name="description"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e) => keyPressed(e)}
+                      />
+                    </Grid>
+                    {/* price */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="price-text"
+                        type="number"
+                        fullWidth
+                        label="Price"
+                        variant="outlined"
+                        value={price}
+                        name="price"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e) => keyPressed(e)}
+                      />
+                    </Grid>
+                    {/* active */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <Autocomplete
+                        id="combo-box-active"
+                        fullWidth
+                        options={statusOption}
+                        value={
+                          formData.active ? statusOption[0] : statusOption[1]
+                        }
+                        onChange={(e, newValue) =>
+                          setFormData({ ...formData, active: newValue.value })
+                        }
+                        getOptionLabel={(option) => option.title}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Active"
+                            variant="outlined"
+                          />
+                        )}
+                      />
+                    </Grid>
+                    {/* content */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <Editor
+                        init={{
+                          height: "80vh",
+                          width: "100%",
+                          selector: "textarea",
+                          menubar: false,
+                          plugins: [
+                            "advlist autolink lists link image charmap print preview hr anchor pagebreak",
+                            "searchreplace wordcount visualblocks visualchars code fullscreen",
+                            "insertdatetime media nonbreaking save table directionality",
+                            "emoticons template paste textpattern imagetools codesample toc",
+                          ],
+                          toolbar1:
+                            "undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media",
+                          toolbar2:
+                            "print preview media | forecolor backcolor emoticons | codesample",
+                          templates: [
+                            { title: "Test template 1", content: "Test 1" },
+                            { title: "Test template 2", content: "Test 2" },
+                          ],
+
+                          images_upload_url: "/",
+                          images_upload_handler: function (
+                            blobInfo,
+                            success,
+                            failure,
+                            progress
+                          ) {
+                            var xhr, formData;
+
+                            xhr = new XMLHttpRequest();
+                            xhr.withCredentials = false;
+                            xhr.open("POST", "/api/blog_images/");
+
+                            xhr.upload.onprogress = function (e) {
+                              progress((e.loaded / e.total) * 100);
+                            };
+
+                            xhr.onload = function () {
+                              var json;
+
+                              if (xhr.status < 200 || xhr.status >= 300) {
+                                failure("HTTP Error: " + xhr.status);
+                                return;
+                              }
+
+                              json = JSON.parse(xhr.responseText);
+
+                              if (
+                                !json ||
+                                typeof json.data.location != "string"
+                              ) {
+                                failure("Invalid JSON: " + xhr.responseText);
+                                return;
+                              }
+
+                              success(json.data.location);
+                            };
+
+                            xhr.onerror = function () {
+                              failure(
+                                "Image upload failed due to a XHR Transport error. Code: " +
+                                  xhr.status
+                              );
+                            };
+
+                            formData = new FormData();
+                            formData.append(
+                              "image",
+                              blobInfo.blob(),
+                              blobInfo.filename()
+                            );
+
+                            xhr.send(formData);
+                          },
+                          relative_urls: false,
+                          automatic_uploads: false,
+                        }}
+                        onEditorChange={handleTinyEditorChange}
+                      />
+                    </Grid>
                   </Grid>
-                  {/* name */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="name-text"
-                      fullWidth
-                      required
-                      label="Product Name"
-                      variant="outlined"
-                      value={title}
-                      name="title"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e) => keyPressed(e)}
-                    />
+                </Paper>
+              </Collapse>
+            </Grid>
+
+            {/* SEO info*/}
+            <Grid item>
+              <ButtonBase
+                className={classes.sectionBtn}
+                onClick={handleSEOCollapse}
+              >
+                <Typography variant="h6">SEO</Typography>
+                {openSEOCollapse ? <ExpandLess /> : <ExpandMore />}
+              </ButtonBase>
+              <Collapse in={openSEOCollapse} timeout="auto" unmountOnExit>
+                <Paper className={classes.padding} elevation={4}>
+                  <Grid container spacing={2} justify="center">
+                    {/* slug */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="slug-text"
+                        fullWidth
+                        required
+                        label="Search engine friendly page name (slug)"
+                        variant="outlined"
+                        value={slug}
+                        name="slug"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e) => keyPressed(e)}
+                      />
+                    </Grid>
+                    {/* meta title */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="meta-title-text"
+                        fullWidth
+                        label="Product Name"
+                        variant="outlined"
+                      />
+                    </Grid>
+                    {/* meta keywords */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="meta-keyword-text"
+                        fullWidth
+                        label="Short Description"
+                        variant="outlined"
+                      />
+                    </Grid>
+                    {/* meta description */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="meta-description-text"
+                        fullWidth
+                        label="Meta Description"
+                        variant="outlined"
+                      />
+                    </Grid>
                   </Grid>
-                  {/* category */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <Autocomplete
-                      id="combo-box-category"
-                      fullWidth
-                      options={categories.items}
-                      value={categories.items[0] || null}
-                      onChange={(e, newValue) =>
-                        setFormData({ ...formData, active: newValue.value })
-                      }
-                      getOptionLabel={(option) => option.title}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Category"
-                          variant="outlined"
-                        />
-                      )}
-                    />
-                  </Grid>
-                  {/* short Description */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="sdescription-text"
-                      fullWidth
-                      required
-                      label="Short Description"
-                      variant="outlined"
-                      value={description}
-                      name="description"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e) => keyPressed(e)}
-                    />
-                  </Grid>
-                  {/* price */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="price-text"
-                      type="number"
-                      fullWidth
-                      label="Price"
-                      variant="outlined"
-                      value={price}
-                      name="price"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e) => keyPressed(e)}
-                    />
-                  </Grid>
-                  {/* active */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <Autocomplete
-                      id="combo-box-active"
-                      fullWidth
-                      options={statusOption}
-                      value={
-                        formData.active ? statusOption[0] : statusOption[1]
-                      }
-                      onChange={(e, newValue) =>
-                        setFormData({ ...formData, active: newValue.value })
-                      }
-                      getOptionLabel={(option) => option.title}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Active"
-                          variant="outlined"
-                        />
-                      )}
-                    />
-                  </Grid>
-                  {/* content */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    {/* <Editor
-                      editorClassName={classes.richEditor}
-                      wrapperClassName="demo-wrapper"
-                      toolbar={{
-                        inline: { inDropdown: true },
-                        list: { inDropdown: true },
-                        textAlign: { inDropdown: true },
-                        link: { inDropdown: true },
-                        history: { inDropdown: true },
-
-                        image: {
-                          uploadCallback: uploadImageCallBack,
-                          alt: { present: true, mandatory: true },
-                          previewImage: false,
-                        },
-                      }}
-                      editorState={editorState}
-                      onEditorStateChange={onEditorStateChange}
-                    /> */}
-                  </Grid>
-                  {/* save content btn */}
-                  {/* <Grid item xs={12} sm={12} md={9}>
-                    <Button
-                      onClick={onSaveContent}
-                      variant="contained"
-                      color="secondary"
-                    >
-                      Save Content
-                    </Button>
-                  </Grid> */}
-
-                  {/* other editor */}
-                  <Editor
-                    init={{
-                      selector: "textarea",
-                      menubar: false,
-                      plugins: [
-                        "advlist autolink lists link image charmap print preview hr anchor pagebreak",
-                        "searchreplace wordcount visualblocks visualchars code fullscreen",
-                        "insertdatetime media nonbreaking save table directionality",
-                        "emoticons template paste textpattern imagetools codesample toc",
-                      ],
-                      toolbar1:
-                        "undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media",
-                      toolbar2:
-                        "print preview media | forecolor backcolor emoticons | codesample",
-                      templates: [
-                        { title: "Test template 1", content: "Test 1" },
-                        { title: "Test template 2", content: "Test 2" },
-                      ],
-
-                      images_upload_url: "/",
-                      images_upload_handler: function (
-                        blobInfo,
-                        success,
-                        failure,
-                        progress
-                      ) {
-                        var xhr, formData;
-
-                        xhr = new XMLHttpRequest();
-                        xhr.withCredentials = false;
-                        xhr.open("POST", "/api/blog_images/");
-
-                        xhr.upload.onprogress = function (e) {
-                          progress((e.loaded / e.total) * 100);
-                        };
-
-                        xhr.onload = function () {
-                          var json;
-
-                          if (xhr.status < 200 || xhr.status >= 300) {
-                            failure("HTTP Error: " + xhr.status);
-                            return;
-                          }
-
-                          json = JSON.parse(xhr.responseText);
-
-                          if (!json || typeof json.data.location != "string") {
-                            failure("Invalid JSON: " + xhr.responseText);
-                            return;
-                          }
-
-                          success(json.data.location);
-                        };
-
-                        xhr.onerror = function () {
-                          failure(
-                            "Image upload failed due to a XHR Transport error. Code: " +
-                              xhr.status
-                          );
-                        };
-
-                        formData = new FormData();
-                        formData.append(
-                          "image",
-                          blobInfo.blob(),
-                          blobInfo.filename()
-                        );
-
-                        xhr.send(formData);
-                      },
-                      relative_urls: false,
-                      automatic_uploads: false,
-                    }}
-                    onEditorChange={handleTinyEditorChange}
-                  />
-
-                  {/* preview content */}
-                  {/* <Grid item xs={12} sm={12} md={9}>
-                    <textarea
-                      style={{ width: "100%", height: "30vh" }}
-                      disabled
-                      value={draftToHtml(
-                        convertToRaw(editorState.getCurrentContent())
-                      )}
-                    />
-                  </Grid> */}
-                </Grid>
-              </Paper>
-            </Collapse>
+                </Paper>
+              </Collapse>
+            </Grid>
           </Grid>
-
-          {/* SEO info*/}
-          <Grid item>
-            <ButtonBase
-              className={classes.sectionBtn}
-              onClick={handleSEOCollapse}
-            >
-              <Typography variant="h6">SEO</Typography>
-              {openSEOCollapse ? <ExpandLess /> : <ExpandMore />}
-            </ButtonBase>
-            <Collapse in={openSEOCollapse} timeout="auto" unmountOnExit>
-              <Paper className={classes.padding} elevation={4}>
-                <Grid container spacing={2} justify="center">
-                  {/* slug */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="slug-text"
-                      fullWidth
-                      required
-                      label="Search engine friendly page name (slug)"
-                      variant="outlined"
-                      value={slug}
-                      name="slug"
-                      onChange={(e) => onChange(e)}
-                      onKeyPress={(e) => keyPressed(e)}
-                    />
-                  </Grid>
-                  {/* meta title */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="meta-title-text"
-                      fullWidth
-                      label="Product Name"
-                      variant="outlined"
-                    />
-                  </Grid>
-                  {/* meta keywords */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="meta-keyword-text"
-                      fullWidth
-                      label="Short Description"
-                      variant="outlined"
-                    />
-                  </Grid>
-                  {/* meta description */}
-                  <Grid item xs={12} sm={12} md={9}>
-                    <TextField
-                      id="meta-description-text"
-                      fullWidth
-                      label="Meta Description"
-                      variant="outlined"
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Collapse>
-          </Grid>
-        </Grid>
-
+        )}
         {/* White space for bottom appbar */}
         <div style={{ height: "128px" }} />
 

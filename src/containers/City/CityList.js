@@ -246,7 +246,11 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete" onClick={handleDelete}>
+          <IconButton
+            aria-label="delete"
+            disabled={!props.deletePermission}
+            onClick={handleDelete}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -270,23 +274,7 @@ const EnhancedTableToolbar = (props) => {
             </div>
           </Grid>
           <Grid item>
-            {/* <Hidden xsDown>
-              <Button
-                component={Link}
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                to="/products-add"
-              >
-                Create
-              </Button>
-            </Hidden>
-            <Hidden smUp>
-              <IconButton color="primary" aria-label="add-btn" component="span">
-                <AddIcon />
-              </IconButton>
-            </Hidden> */}
-            <CityAddModal />
+            <CityAddModal disable={!props.addPermission} />
           </Grid>
           <Grid item>
             <Tooltip title="Filter list">
@@ -369,6 +357,7 @@ export default function CityList() {
   //Redux Hook
   const dispatch = useDispatch();
   const cities = useSelector((state) => state.cities);
+  const user = useSelector((state) => state.users.user);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -428,6 +417,36 @@ export default function CityList() {
     rowsPerPage - Math.min(rowsPerPage, cities.count - page * rowsPerPage) || 0;
 
   //Main functions
+  //*Permission access
+  const viewPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "view_city"
+    )
+      ? true
+      : false;
+  const addPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "add_city"
+    )
+      ? true
+      : false;
+  const updatePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "change_city"
+    )
+      ? true
+      : false;
+  const deletePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "delete_city"
+    )
+      ? true
+      : false;
+
   //*Search
   const [search, setSearch] = React.useState("");
   //Handle Search
@@ -438,65 +457,71 @@ export default function CityList() {
     setPage(0);
   };
 
-  //*load districts (with Pagination) + load all cities
+  //*load cites (with Pagination)
   useEffect(() => {
-    dispatch(
-      cityActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
-    );
-  }, [dispatch, rowsPerPage, page]);
+    if (viewPermission)
+      dispatch(
+        cityActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
+      );
+  }, [viewPermission, dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
-      <React.Fragment>
-        {/* Breadcrumb */}
-        <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
-          <Link className={classes.link} to="/">
-            Dashboard
-          </Link>
+      {viewPermission ? (
+        <React.Fragment>
+          {/* Breadcrumb */}
+          <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
+            <Link className={classes.link} to="/">
+              Dashboard
+            </Link>
 
-          <Typography color="textPrimary">City List</Typography>
-        </Breadcrumbs>
+            <Typography color="textPrimary">City List</Typography>
+          </Breadcrumbs>
 
-        {/* Success & Error handling */}
-        {cities.error && (
-          <CustomAlert
-            openError={true}
-            messageError={cities.error}
-          ></CustomAlert>
-        )}
-        {cities.success && <CustomAlert openSuccess={true}></CustomAlert>}
+          {/* Success & Error handling */}
+          {cities.error && (
+            <CustomAlert
+              openError={true}
+              messageError={cities.error}
+            ></CustomAlert>
+          )}
+          {cities.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
-        {/* District table */}
-        <Paper className={classes.paper}>
-          <EnhancedTableToolbar
-            numSelected={selected.length}
-            idSelected={selected}
-            setSelected={setSelected}
-            onSearch={onSearch}
-            setSearch={setSearch}
-          />
+          {/* District table */}
+          <Paper className={classes.paper}>
+            <EnhancedTableToolbar
+              numSelected={selected.length}
+              idSelected={selected}
+              setSelected={setSelected}
+              onSearch={onSearch}
+              setSearch={setSearch}
+              addPermission={addPermission}
+              deletePermission={deletePermission}
+            />
 
-          {/* Table Desktop version */}
-          <Hidden smDown>
-            <TableContainer className={classes.tableContainer}>
-              <Table
-                className={classes.table}
-                aria-labelledby="tableTitle"
-                size={"small"}
-                aria-label="enhanced table"
-              >
-                <EnhancedTableHead
-                  classes={classes}
-                  numSelected={selected.length}
-                  order={order}
-                  orderBy={orderBy}
-                  onSelectAllClick={handleSelectAllClick}
-                  onRequestSort={handleRequestSort}
-                  rowCount={cities.items.length || 0}
-                />
-                <TableBody>
-                  {stableSort(cities.items, getComparator(order, orderBy)).map(
-                    (row, index) => {
+            {/* Table Desktop version */}
+            <Hidden smDown>
+              <TableContainer className={classes.tableContainer}>
+                <Table
+                  className={classes.table}
+                  aria-labelledby="tableTitle"
+                  size={"small"}
+                  aria-label="enhanced table"
+                >
+                  <EnhancedTableHead
+                    classes={classes}
+                    numSelected={selected.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={cities.items.length || 0}
+                  />
+                  <TableBody>
+                    {stableSort(
+                      cities.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
                       const isItemSelected = isSelected(row.id);
                       const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -523,78 +548,87 @@ export default function CityList() {
                           <TableCell align="right">
                             <Grid container justify="flex-end">
                               <Grid item>
-                                <CityEditModal id={row.id} />
+                                <CityEditModal
+                                  disable={!updatePermission}
+                                  id={row.id}
+                                />
                               </Grid>
                             </Grid>
                           </TableCell>
                         </TableRow>
                       );
-                    }
-                  )}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 40 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Hidden>
+                    })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 40 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Hidden>
 
-          {/* Table Mobile version */}
-          <Hidden mdUp>
-            {cities.items
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <Card
-                  variant="outlined"
-                  className={classes.cardRoot}
-                  key={index}
-                >
-                  <Grid container>
-                    <Grid item xs={8}>
-                      <CardContent className={classes.cardContent}>
-                        <Typography gutterBottom variant="h6" component="h2">
-                          Name: {row.name}
-                        </Typography>
-                        <Typography variant="body1" component="p" gutterBottom>
-                          ID: {row.id}
-                        </Typography>
-                      </CardContent>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={4}
-                      container
-                      direction="column"
-                      justify="center"
-                      alignItems="flex-end"
-                    >
-                      <CityEditModal id={row.id} />
-                      <IconButton
-                        aria-label="edit"
-                        onClick={() => dispatch(cityActions.delete([row.id]))}
+            {/* Table Mobile version */}
+            <Hidden mdUp>
+              {cities.items
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row, index) => (
+                  <Card
+                    variant="outlined"
+                    className={classes.cardRoot}
+                    key={index}
+                  >
+                    <Grid container>
+                      <Grid item xs={8}>
+                        <CardContent className={classes.cardContent}>
+                          <Typography gutterBottom variant="h6" component="h2">
+                            Name: {row.name}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            component="p"
+                            gutterBottom
+                          >
+                            ID: {row.id}
+                          </Typography>
+                        </CardContent>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={4}
+                        container
+                        direction="column"
+                        justify="center"
+                        alignItems="flex-end"
                       >
-                        <DeleteIcon />
-                      </IconButton>
+                        <CityEditModal id={row.id} />
+                        <IconButton
+                          aria-label="edit"
+                          onClick={() => dispatch(cityActions.delete([row.id]))}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </Card>
-              ))}
-          </Hidden>
+                  </Card>
+                ))}
+            </Hidden>
 
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={cities.count || 0}
-            rowsPerPage={rowsPerPage}
-            labelRowsPerPage={"Rows:"}
-            page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
-          />
-        </Paper>
-      </React.Fragment>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={cities.count || 0}
+              rowsPerPage={rowsPerPage}
+              labelRowsPerPage={"Rows:"}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
+          </Paper>
+        </React.Fragment>
+      ) : (
+        <CustomAlert openErrorAuthority={true} />
+      )}
     </AdminLayout>
   );
 }

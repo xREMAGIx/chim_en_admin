@@ -80,7 +80,12 @@ export default function CityEditModal(props) {
   return (
     <React.Fragment>
       <Tooltip title="Edit" aria-label="edit">
-        <IconButton aria-label="add-btn" component="span" onClick={handleOpen}>
+        <IconButton
+          aria-label="add-btn"
+          component="span"
+          disabled={props.disable}
+          onClick={handleOpen}
+        >
           <EditIcon />
         </IconButton>
       </Tooltip>

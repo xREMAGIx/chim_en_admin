@@ -32,7 +32,7 @@ import OrdersChart from "../components/Charts/OrdersChart";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions, userActions } from "../actions";
+import { userActions } from "../actions";
 
 const useStyles = makeStyles((theme) => ({
   sectionBtn: {
@@ -95,7 +95,7 @@ export default function Dashboard() {
   };
   useEffect(() => {
     if (history.location.state === 200) setOpen(true);
-    dispatch(productActions.getAllNonPagination());
+    dispatch(userActions.getAllNonPagination());
   }, [dispatch]);
 
   //Colapse

@@ -21,10 +21,8 @@ import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import Tooltip from "@material-ui/core/Tooltip";
 import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import DeleteIcon from "@material-ui/icons/Delete";
 import FilterListIcon from "@material-ui/icons/FilterList";
-import AddIcon from "@material-ui/icons/Add";
 import Hidden from "@material-ui/core/Hidden";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
@@ -304,7 +302,11 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete" onClick={handleDelete}>
+          <IconButton
+            aria-label="delete"
+            onClick={handleDelete}
+            disabled={!props.deletePermission}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -326,24 +328,6 @@ const EnhancedTableToolbar = (props) => {
                 onKeyPress={keyEnter}
               />
             </div>
-          </Grid>
-          <Grid item>
-            <Hidden xsDown>
-              <Button
-                component={Link}
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                to="/products-add"
-              >
-                Create
-              </Button>
-            </Hidden>
-            <Hidden smUp>
-              <IconButton color="primary" aria-label="add-btn" component="span">
-                <AddIcon />
-              </IconButton>
-            </Hidden>
           </Grid>
           <Grid item>
             <Tooltip title="Filter list">
@@ -426,6 +410,7 @@ export default function OrderList() {
   //Redux Hooks
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.orders);
+  const user = useSelector((state) => state.users.user);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -484,6 +469,29 @@ export default function OrderList() {
     rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
 
   //Main functions
+  //*Permission access
+  const viewPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "view_payment"
+    )
+      ? true
+      : false;
+  const updatePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "change_payment"
+    )
+      ? true
+      : false;
+  const deletePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "delete_payment"
+    )
+      ? true
+      : false;
+
   //*Filter
   const [statusFilter, setStatusFilter] = useState("");
   //Chip function
@@ -510,102 +518,111 @@ export default function OrderList() {
 
   //*load orders (with Pagination)
   useEffect(() => {
-    dispatch(
-      orderActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
-    );
-  }, [dispatch, rowsPerPage, page]);
+    if (viewPermission)
+      dispatch(
+        orderActions.getAll(
+          `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
+        )
+      );
+  }, [viewPermission, dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
-      <React.Fragment>
-        {/* Breadcrumb */}
-        <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
-          <Link className={classes.link} to="/">
-            Dashboard
-          </Link>
+      {viewPermission ? (
+        <React.Fragment>
+          {/* Breadcrumb */}
+          <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
+            <Link className={classes.link} to="/">
+              Dashboard
+            </Link>
 
-          <Typography color="textPrimary">Order List</Typography>
-        </Breadcrumbs>
+            <Typography color="textPrimary">Order List</Typography>
+          </Breadcrumbs>
 
-        {/* Success & Error handling */}
-        {orders.error && (
-          <CustomAlert
-            openError={true}
-            messageError={orders.error}
-          ></CustomAlert>
-        )}
-        {orders.success && <CustomAlert openSuccess={true}></CustomAlert>}
+          {/* Success & Error handling */}
+          {orders.error && (
+            <CustomAlert
+              openError={true}
+              messageError={orders.error}
+            ></CustomAlert>
+          )}
+          {orders.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
-        {/* Product table */}
-        <Paper className={classes.paper}>
-          <EnhancedTableToolbar
-            numSelected={selected.length}
-            idSelected={selected}
-            setSelected={setSelected}
-            setSearch={setSearch}
-            onSearch={onSearch}
-          />
-          <Grid
-            style={{ marginLeft: 8, marginBottom: 16 }}
-            container
-            spacing={2}
-          >
-            <Grid item>
-              <Chip
-                color={statusFilter === "" ? "secondary" : "default"}
-                id=""
-                label="All"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-
-            <Grid item>
-              <Chip
-                color={statusFilter === "Pending" ? "secondary" : "default"}
-                id="Pending"
-                label="Pending"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-            <Grid item>
-              <Chip
-                color={statusFilter === "Processing" ? "secondary" : "default"}
-                id="Processing"
-                label="Processing"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-            <Grid item>
-              <Chip
-                color={statusFilter === "Complete" ? "secondary" : "default"}
-                id="Complete"
-                label="Complete"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Table Desktop version */}
-          <Hidden smDown>
-            <TableContainer>
-              <Table
-                className={classes.table}
-                aria-labelledby="tableTitle"
-                size={"small"}
-                aria-label="enhanced table"
-              >
-                <EnhancedTableHead
-                  classes={classes}
-                  numSelected={selected.length}
-                  order={order}
-                  orderBy={orderBy}
-                  onSelectAllClick={handleSelectAllClick}
-                  onRequestSort={handleRequestSort}
-                  rowCount={rows.length}
+          {/* Product table */}
+          <Paper className={classes.paper}>
+            <EnhancedTableToolbar
+              numSelected={selected.length}
+              idSelected={selected}
+              setSelected={setSelected}
+              setSearch={setSearch}
+              onSearch={onSearch}
+              deletePermission={deletePermission}
+            />
+            <Grid
+              style={{ marginLeft: 8, marginBottom: 16 }}
+              container
+              spacing={2}
+            >
+              <Grid item>
+                <Chip
+                  color={statusFilter === "" ? "secondary" : "default"}
+                  id=""
+                  label="All"
+                  onClick={(e) => handleChipClick(e)}
                 />
-                <TableBody>
-                  {stableSort(orders.items, getComparator(order, orderBy)).map(
-                    (row, index) => {
+              </Grid>
+
+              <Grid item>
+                <Chip
+                  color={statusFilter === "Pending" ? "secondary" : "default"}
+                  id="Pending"
+                  label="Pending"
+                  onClick={(e) => handleChipClick(e)}
+                />
+              </Grid>
+              <Grid item>
+                <Chip
+                  color={
+                    statusFilter === "Processing" ? "secondary" : "default"
+                  }
+                  id="Processing"
+                  label="Processing"
+                  onClick={(e) => handleChipClick(e)}
+                />
+              </Grid>
+              <Grid item>
+                <Chip
+                  color={statusFilter === "Complete" ? "secondary" : "default"}
+                  id="Complete"
+                  label="Complete"
+                  onClick={(e) => handleChipClick(e)}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Table Desktop version */}
+            <Hidden smDown>
+              <TableContainer>
+                <Table
+                  className={classes.table}
+                  aria-labelledby="tableTitle"
+                  size={"small"}
+                  aria-label="enhanced table"
+                >
+                  <EnhancedTableHead
+                    classes={classes}
+                    numSelected={selected.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={rows.length}
+                  />
+                  <TableBody>
+                    {stableSort(
+                      orders.items,
+                      getComparator(order, orderBy)
+                    ).map((row, index) => {
                       const isItemSelected = isSelected(row.id);
                       const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -681,6 +698,7 @@ export default function OrderList() {
                                     component={Link}
                                     to={`/orders-edit/${row.id}`}
                                     aria-label="edit"
+                                    disabled={!updatePermission}
                                   >
                                     <EditIcon />
                                   </IconButton>
@@ -690,91 +708,97 @@ export default function OrderList() {
                           </TableCell>
                         </TableRow>
                       );
-                    }
-                  )}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 40 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Hidden>
+                    })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 40 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Hidden>
 
-          {/* Table Mobile version */}
-          <Hidden mdUp>
-            {rows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, index) => (
-                <Card
-                  variant="outlined"
-                  className={classes.cardRoot}
-                  key={index}
-                >
-                  <Grid container>
-                    <Grid item xs={3} container alignItems="center">
-                      <CardActionArea>
-                        <CardMedia
-                          className={classes.cardMedia}
-                          image={row.image}
-                          title={row.name}
-                        />
-                      </CardActionArea>
+            {/* Table Mobile version */}
+            <Hidden mdUp>
+              {rows
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row, index) => (
+                  <Card
+                    variant="outlined"
+                    className={classes.cardRoot}
+                    key={index}
+                  >
+                    <Grid container>
+                      <Grid item xs={3} container alignItems="center">
+                        <CardActionArea>
+                          <CardMedia
+                            className={classes.cardMedia}
+                            image={row.image}
+                            title={row.name}
+                          />
+                        </CardActionArea>
+                      </Grid>
+                      <Grid item xs={7}>
+                        <CardContent className={classes.cardContent}>
+                          <Typography gutterBottom variant="h6" component="h2">
+                            {row.name}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            component="p"
+                            gutterBottom
+                          >
+                            Price: {row.price}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            color="textPrimary"
+                            component="p"
+                            gutterBottom
+                          >
+                            Status: {row.status}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="textPrimary"
+                            component="p"
+                          >
+                            Categories: {row.categories}
+                          </Typography>
+                        </CardContent>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={2}
+                        container
+                        justify="flex-end"
+                        alignItems="flex-start"
+                      >
+                        <IconButton aria-label="edit">
+                          <EditIcon />
+                        </IconButton>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={7}>
-                      <CardContent className={classes.cardContent}>
-                        <Typography gutterBottom variant="h6" component="h2">
-                          {row.name}
-                        </Typography>
-                        <Typography variant="body1" component="p" gutterBottom>
-                          Price: {row.price}
-                        </Typography>
-                        <Typography
-                          variant="body1"
-                          color="textPrimary"
-                          component="p"
-                          gutterBottom
-                        >
-                          Status: {row.status}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="textPrimary"
-                          component="p"
-                        >
-                          Categories: {row.categories}
-                        </Typography>
-                      </CardContent>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={2}
-                      container
-                      justify="flex-end"
-                      alignItems="flex-start"
-                    >
-                      <IconButton aria-label="edit">
-                        <EditIcon />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
-                </Card>
-              ))}
-          </Hidden>
+                  </Card>
+                ))}
+            </Hidden>
 
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={orders.count || 0}
-            rowsPerPage={rowsPerPage}
-            labelRowsPerPage={"Rows:"}
-            page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
-          />
-        </Paper>
-      </React.Fragment>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={orders.count || 0}
+              rowsPerPage={rowsPerPage}
+              labelRowsPerPage={"Rows:"}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
+          </Paper>
+        </React.Fragment>
+      ) : (
+        <CustomAlert openErrorAuthority={true} />
+      )}
     </AdminLayout>
   );
 }

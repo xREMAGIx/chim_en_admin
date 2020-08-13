@@ -260,7 +260,11 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete" onClick={handleDelete}>
+          <IconButton
+            aria-label="delete"
+            disabled={!props.deletePermission}
+            onClick={handleDelete}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -287,6 +291,7 @@ const EnhancedTableToolbar = (props) => {
             <Hidden xsDown>
               <Button
                 component={Link}
+                disabled={!props.addPermission}
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
@@ -296,7 +301,12 @@ const EnhancedTableToolbar = (props) => {
               </Button>
             </Hidden>
             <Hidden smUp>
-              <IconButton color="primary" aria-label="add-btn" component="span">
+              <IconButton
+                color="primary"
+                aria-label="add-btn"
+                disabled={!props.addPermission}
+                component="span"
+              >
                 <AddIcon />
               </IconButton>
             </Hidden>
@@ -395,6 +405,7 @@ export default function ProductList() {
   const dispatch = useDispatch();
   const products = useSelector((state) => state.products);
   const categories = useSelector((state) => state.categories);
+  const user = useSelector((state) => state.users.user);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -455,6 +466,36 @@ export default function ProductList() {
       Math.min(rowsPerPage, products.items.length - page * rowsPerPage) || 0;
 
   //Main functions
+  //*Permission access
+  const viewPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "view_product"
+    )
+      ? true
+      : false;
+  const addPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "add_product"
+    )
+      ? true
+      : false;
+  const updatePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "change_product"
+    )
+      ? true
+      : false;
+  const deletePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "delete_product"
+    )
+      ? true
+      : false;
+
   //*Filter
   const [statusFilter, setStatusFilter] = useState("");
   //Chip function
@@ -481,309 +522,322 @@ export default function ProductList() {
 
   //*load product (with Pagination) + load category
   useEffect(() => {
-    dispatch(
-      productActions.getAll(
-        `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
-      )
-    );
-    dispatch(categoryActions.getAllNonPagination());
-  }, [dispatch, rowsPerPage, page]);
+    if (viewPermission) {
+      dispatch(
+        productActions.getAll(
+          `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
+        )
+      );
+      dispatch(categoryActions.getAllNonPagination());
+    }
+  }, [viewPermission, dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
-      <React.Fragment>
-        {/* Breadcrumb */}
-        <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
-          <Link className={classes.link} to="/">
-            Dashboard
-          </Link>
+      {viewPermission ? (
+        <React.Fragment>
+          {/* Breadcrumb */}
+          <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
+            <Link className={classes.link} to="/">
+              Dashboard
+            </Link>
 
-          <Typography color="textPrimary">Product List</Typography>
-        </Breadcrumbs>
+            <Typography color="textPrimary">Product List</Typography>
+          </Breadcrumbs>
 
-        {/* Success & Error handling */}
-        {products.error && (
-          <CustomAlert
-            openError={true}
-            messageError={products.error}
-          ></CustomAlert>
-        )}
-        {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
+          {/* Success & Error handling */}
+          {products.error && (
+            <CustomAlert
+              openError={true}
+              messageError={products.error}
+            ></CustomAlert>
+          )}
+          {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
-        {/* Product table */}
-        <Paper className={classes.paper}>
-          <EnhancedTableToolbar
-            numSelected={selected.length}
-            idSelected={selected}
-            setSelected={setSelected}
-            setSearch={setSearch}
-            onSearch={onSearch}
-          />
-          {/* Filter Chip */}
-          <Grid
-            style={{ marginLeft: 8, marginBottom: 16 }}
-            container
-            spacing={2}
-          >
-            <Grid item>
-              <Chip
-                color={statusFilter === "" ? "secondary" : "default"}
-                id=""
-                label="All"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-
-            <Grid item>
-              <Chip
-                color={statusFilter === "true" ? "secondary" : "default"}
-                id="true"
-                label="Available"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-            <Grid item>
-              <Chip
-                color={statusFilter === "false" ? "secondary" : "default"}
-                id="false"
-                label="Unavailable"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-          </Grid>
-          {/* Table Desktop version */}
-          <Hidden smDown>
-            <TableContainer className={classes.tableContainer}>
-              <Table
-                stickyHeader
-                className={classes.table}
-                aria-labelledby="tableTitle"
-                size={"small"}
-                aria-label="enhanced table"
-              >
-                <EnhancedTableHead
-                  classes={classes}
-                  numSelected={selected.length}
-                  order={order}
-                  orderBy={orderBy}
-                  onSelectAllClick={handleSelectAllClick}
-                  onRequestSort={handleRequestSort}
-                  rowCount={products.items.length}
+          {/* Product table */}
+          <Paper className={classes.paper}>
+            <EnhancedTableToolbar
+              numSelected={selected.length}
+              idSelected={selected}
+              setSelected={setSelected}
+              setSearch={setSearch}
+              onSearch={onSearch}
+              addPermission={addPermission}
+              deletePermission={deletePermission}
+            />
+            {/* Filter Chip */}
+            <Grid
+              style={{ marginLeft: 8, marginBottom: 16 }}
+              container
+              spacing={2}
+            >
+              <Grid item>
+                <Chip
+                  color={statusFilter === "" ? "secondary" : "default"}
+                  id=""
+                  label="All"
+                  onClick={(e) => handleChipClick(e)}
                 />
-                <TableBody>
-                  {products.items.length > 0 &&
-                    stableSort(
-                      products.items,
-                      getComparator(order, orderBy)
-                    ).map((row, index) => {
-                      const isItemSelected = isSelected(row.id);
-                      const labelId = `enhanced-table-checkbox-${index}`;
+              </Grid>
 
-                      return (
-                        <TableRow
-                          hover
-                          onClick={(event) => handleClick(event, row.id)}
-                          role="checkbox"
-                          aria-checked={isItemSelected}
-                          tabIndex={-1}
-                          key={index}
-                          selected={isItemSelected}
-                        >
-                          <TableCell padding="checkbox">
-                            <Checkbox
-                              checked={isItemSelected}
-                              inputProps={{ "aria-labelledby": labelId }}
-                            />
-                          </TableCell>
+              <Grid item>
+                <Chip
+                  color={statusFilter === "true" ? "secondary" : "default"}
+                  id="true"
+                  label="Available"
+                  onClick={(e) => handleChipClick(e)}
+                />
+              </Grid>
+              <Grid item>
+                <Chip
+                  color={statusFilter === "false" ? "secondary" : "default"}
+                  id="false"
+                  label="Unavailable"
+                  onClick={(e) => handleChipClick(e)}
+                />
+              </Grid>
+            </Grid>
+            {/* Table Desktop version */}
+            <Hidden smDown>
+              <TableContainer className={classes.tableContainer}>
+                <Table
+                  stickyHeader
+                  className={classes.table}
+                  aria-labelledby="tableTitle"
+                  size={"small"}
+                  aria-label="enhanced table"
+                >
+                  <EnhancedTableHead
+                    classes={classes}
+                    numSelected={selected.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={products.items.length}
+                  />
+                  <TableBody>
+                    {products.items.length > 0 &&
+                      stableSort(
+                        products.items,
+                        getComparator(order, orderBy)
+                      ).map((row, index) => {
+                        const isItemSelected = isSelected(row.id);
+                        const labelId = `enhanced-table-checkbox-${index}`;
 
-                          <TableCell>
-                            <img
-                              height={48}
-                              width={48}
-                              src={
-                                row.images.length > 0
-                                  ? row.images[0].image
-                                  : null
-                              }
-                              alt="No data"
-                            ></img>
-                          </TableCell>
-
-                          <TableCell>{row.id}</TableCell>
-                          <TableCell
-                            style={{
-                              maxWidth: "10vw",
-                              whiteSpace: "normal",
-                              wordWrap: "break-word",
-                            }}
-                            scope="row"
-                            padding="none"
+                        return (
+                          <TableRow
+                            hover
+                            onClick={(event) => handleClick(event, row.id)}
+                            role="checkbox"
+                            aria-checked={isItemSelected}
+                            tabIndex={-1}
+                            key={index}
+                            selected={isItemSelected}
                           >
-                            <Grid item xs zeroMinWidth>
-                              <Tooltip
-                                title={
-                                  <Typography variant="body2">
+                            <TableCell padding="checkbox">
+                              <Checkbox
+                                checked={isItemSelected}
+                                inputProps={{ "aria-labelledby": labelId }}
+                              />
+                            </TableCell>
+
+                            <TableCell>
+                              <img
+                                height={48}
+                                width={48}
+                                src={
+                                  row.images.length > 0
+                                    ? row.images[0].image
+                                    : null
+                                }
+                                alt="No data"
+                              ></img>
+                            </TableCell>
+
+                            <TableCell>{row.id}</TableCell>
+                            <TableCell
+                              style={{
+                                maxWidth: "10vw",
+                                whiteSpace: "normal",
+                                wordWrap: "break-word",
+                              }}
+                              scope="row"
+                              padding="none"
+                            >
+                              <Grid item xs zeroMinWidth>
+                                <Tooltip
+                                  title={
+                                    <Typography variant="body2">
+                                      {row.title}
+                                    </Typography>
+                                  }
+                                >
+                                  <Typography variant="body2" noWrap>
                                     {row.title}
                                   </Typography>
-                                }
+                                </Tooltip>
+                              </Grid>
+                            </TableCell>
+                            <TableCell align="right">
+                              {row.price.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              {(
+                                categories.items.find(
+                                  (element) => element.id === row.category
+                                ) || {}
+                              ).title || row.category}
+                            </TableCell>
+                            <TableCell>
+                              <Typography
+                                display="inline"
+                                variant="body2"
+                                className={clsx({
+                                  [classes.status]: true,
+                                  [classes.available]: row.active,
+                                  [classes.unavailable]: !row.active,
+                                })}
                               >
-                                <Typography variant="body2" noWrap>
-                                  {row.title}
-                                </Typography>
-                              </Tooltip>
-                            </Grid>
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.price.toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            {(
-                              categories.items.find(
-                                (element) => element.id === row.category
-                              ) || {}
-                            ).title || row.category}
-                          </TableCell>
-                          <TableCell>
-                            <Typography
-                              display="inline"
-                              variant="body2"
-                              className={clsx({
-                                [classes.status]: true,
-                                [classes.available]: row.active,
-                                [classes.unavailable]: !row.active,
-                              })}
-                            >
-                              {row.active ? "Available" : "Unavailable"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" display="block">
-                              {dateFormat(row.updated)}
-                            </Typography>
-                            <Typography
-                              color="textSecondary"
-                              variant="body2"
-                              display="block"
-                            >
-                              {dateFormat(row.created_at)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Grid container justify="flex-end">
-                              <Grid item>
-                                <Tooltip title="Edit" aria-label="edit">
-                                  <IconButton
-                                    component={Link}
-                                    to={`/products-edit/${row.id}`}
-                                    aria-label="edit"
+                                {row.active ? "Available" : "Unavailable"}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" display="block">
+                                {dateFormat(row.updated)}
+                              </Typography>
+                              <Typography
+                                color="textSecondary"
+                                variant="body2"
+                                display="block"
+                              >
+                                {dateFormat(row.created_at)}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Grid container justify="flex-end">
+                                <Grid item>
+                                  <Tooltip title="Edit" aria-label="edit">
+                                    <IconButton
+                                      component={Link}
+                                      disabled={!updatePermission}
+                                      to={`/products-edit/${row.id}`}
+                                      aria-label="edit"
+                                    >
+                                      <EditIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Grid>
+                                <Grid item>
+                                  <Tooltip
+                                    title="Duplicate"
+                                    aria-label="duplicate"
                                   >
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
+                                    <IconButton aria-label="duplicate">
+                                      <FileCopyIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Grid>
                               </Grid>
-                              <Grid item>
-                                <Tooltip
-                                  title="Duplicate"
-                                  aria-label="duplicate"
-                                >
-                                  <IconButton aria-label="duplicate">
-                                    <FileCopyIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </Grid>
-                            </Grid>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 40 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Hidden>
-          {/* Table Mobile version */}
-          <Hidden mdUp>
-            {products.items.map((row, index) => (
-              <Card variant="outlined" className={classes.cardRoot} key={index}>
-                <Grid container>
-                  <Grid item xs={3} container alignItems="center">
-                    <CardActionArea>
-                      <CardMedia
-                        //className={classes.cardMedia}
-                        component="img"
-                        src={
-                          (row.images.length > 0 && row.images[0].image) || ""
-                        }
-                        alt={"No data"}
-                      />
-                    </CardActionArea>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 40 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Hidden>
+            {/* Table Mobile version */}
+            <Hidden mdUp>
+              {products.items.map((row, index) => (
+                <Card
+                  variant="outlined"
+                  className={classes.cardRoot}
+                  key={index}
+                >
+                  <Grid container>
+                    <Grid item xs={3} container alignItems="center">
+                      <CardActionArea>
+                        <CardMedia
+                          //className={classes.cardMedia}
+                          component="img"
+                          src={
+                            (row.images.length > 0 && row.images[0].image) || ""
+                          }
+                          alt={"No data"}
+                        />
+                      </CardActionArea>
+                    </Grid>
+                    <Grid item xs={7}>
+                      <CardContent className={classes.cardContent}>
+                        <Typography gutterBottom variant="h6" component="h2">
+                          {row.title}
+                        </Typography>
+                        <Typography variant="body1" component="p" gutterBottom>
+                          Price: {row.price}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="textPrimary"
+                          component="p"
+                          style={{ marginBottom: 10 }}
+                        >
+                          Categories:{" "}
+                          {(
+                            categories.items.find(
+                              (element) => element.id === row.category
+                            ) || {}
+                          ).title || row.category}
+                        </Typography>
+                        <Typography
+                          display="inline"
+                          variant="body2"
+                          className={clsx({
+                            [classes.status]: true,
+                            [classes.available]: row.active,
+                            [classes.unavailable]: !row.active,
+                          })}
+                        >
+                          {row.active ? "Available" : "Unavailable"}
+                        </Typography>
+                      </CardContent>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={2}
+                      container
+                      justify="flex-end"
+                      alignItems="flex-start"
+                    >
+                      <IconButton aria-label="edit">
+                        <EditIcon />
+                      </IconButton>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={7}>
-                    <CardContent className={classes.cardContent}>
-                      <Typography gutterBottom variant="h6" component="h2">
-                        {row.title}
-                      </Typography>
-                      <Typography variant="body1" component="p" gutterBottom>
-                        Price: {row.price}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="textPrimary"
-                        component="p"
-                        style={{ marginBottom: 10 }}
-                      >
-                        Categories:{" "}
-                        {(
-                          categories.items.find(
-                            (element) => element.id === row.category
-                          ) || {}
-                        ).title || row.category}
-                      </Typography>
-                      <Typography
-                        display="inline"
-                        variant="body2"
-                        className={clsx({
-                          [classes.status]: true,
-                          [classes.available]: row.active,
-                          [classes.unavailable]: !row.active,
-                        })}
-                      >
-                        {row.active ? "Available" : "Unavailable"}
-                      </Typography>
-                    </CardContent>
-                  </Grid>
-                  <Grid
-                    item
-                    xs={2}
-                    container
-                    justify="flex-end"
-                    alignItems="flex-start"
-                  >
-                    <IconButton aria-label="edit">
-                      <EditIcon />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              </Card>
-            ))}
-          </Hidden>
-          {/* Pagination */}
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={products.count || 0}
-            rowsPerPage={rowsPerPage}
-            labelRowsPerPage={"Rows:"}
-            page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
-          />
-        </Paper>
-      </React.Fragment>
+                </Card>
+              ))}
+            </Hidden>
+            {/* Pagination */}
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={products.count || 0}
+              rowsPerPage={rowsPerPage}
+              labelRowsPerPage={"Rows:"}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
+          </Paper>
+        </React.Fragment>
+      ) : (
+        <CustomAlert openErrorAuthority={true} />
+      )}
     </AdminLayout>
   );
 }

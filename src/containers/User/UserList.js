@@ -249,7 +249,11 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton aria-label="delete" onClick={handleDelete}>
+          <IconButton
+            aria-label="delete"
+            onClick={handleDelete}
+            disabled={!props.deletePermission}
+          >
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -280,6 +284,7 @@ const EnhancedTableToolbar = (props) => {
                 color="primary"
                 startIcon={<AddIcon />}
                 to="/users-add"
+                disabled={!props.addPermission}
               >
                 Create
               </Button>
@@ -371,6 +376,7 @@ export default function UserList() {
   //Redux Hook
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users);
+  const user = useSelector((state) => state.users.user);
 
   //Table Hooks
   const [order, setOrder] = React.useState("asc");
@@ -434,6 +440,36 @@ export default function UserList() {
       ) || 0;
 
   //Main functions
+  //*Permission access
+  const viewPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "view_user"
+    )
+      ? true
+      : false;
+  const addPermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "add_user"
+    )
+      ? true
+      : false;
+  const updatePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "change_user"
+    )
+      ? true
+      : false;
+  const deletePermission =
+    user &&
+    user.user_permissions.find(
+      (permission) => permission.codename === "delete_user"
+    )
+      ? true
+      : false;
+
   //*Filter
   const [statusFilter, setStatusFilter] = useState("");
   //Chip function
@@ -460,97 +496,104 @@ export default function UserList() {
 
   //*load user (with Pagination) + load category
   useEffect(() => {
-    dispatch(
-      userActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
-    );
-    dispatch(categoryActions.getAllNonPagination());
-  }, [dispatch, rowsPerPage, page]);
+    if (viewPermission) {
+      dispatch(
+        userActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
+      );
+      dispatch(categoryActions.getAllNonPagination());
+    }
+  }, [viewPermission, dispatch, rowsPerPage, page]);
 
   return (
     <AdminLayout>
-      <React.Fragment>
-        {/* Breadcrumb */}
-        <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
-          <Link className={classes.link} to="/">
-            Dashboard
-          </Link>
+      {viewPermission ? (
+        <React.Fragment>
+          {/* Breadcrumb */}
+          <Breadcrumbs className={classes.marginY} aria-label="breadcrumb">
+            <Link className={classes.link} to="/">
+              Dashboard
+            </Link>
 
-          <Typography color="textPrimary">User List</Typography>
-        </Breadcrumbs>
+            <Typography color="textPrimary">User List</Typography>
+          </Breadcrumbs>
 
-        {/* Success & Error handling */}
-        {users.error && (
-          <CustomAlert
-            openError={true}
-            messageError={users.error}
-          ></CustomAlert>
-        )}
-        {users.success && <CustomAlert openSuccess={true}></CustomAlert>}
+          {/* Success & Error handling */}
+          {users.error && (
+            <CustomAlert
+              openError={true}
+              messageError={users.error}
+            ></CustomAlert>
+          )}
+          {users.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
-        {/* Product table */}
-        <Paper className={classes.paper}>
-          <EnhancedTableToolbar
-            numSelected={selected.length}
-            idSelected={selected}
-            setSelected={setSelected}
-            setSearch={setSearch}
-            onSearch={onSearch}
-          />
-          {/* Filter Chip */}
-          <Grid
-            style={{ marginLeft: 8, marginBottom: 16 }}
-            container
-            spacing={2}
-          >
-            <Grid item>
-              <Chip
-                color={statusFilter === "" ? "secondary" : "default"}
-                id=""
-                label="All"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-
-            <Grid item>
-              <Chip
-                color={statusFilter === "true" ? "secondary" : "default"}
-                id="true"
-                label="Available"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-            <Grid item>
-              <Chip
-                color={statusFilter === "false" ? "secondary" : "default"}
-                id="false"
-                label="Unavailable"
-                onClick={(e) => handleChipClick(e)}
-              />
-            </Grid>
-          </Grid>
-          {/* Table Desktop version */}
-          <Hidden smDown>
-            <TableContainer className={classes.tableContainer}>
-              <Table
-                stickyHeader
-                className={classes.table}
-                aria-labelledby="tableTitle"
-                size={"small"}
-                aria-label="enhanced table"
-              >
-                <EnhancedTableHead
-                  classes={classes}
-                  numSelected={selected.length}
-                  order={order}
-                  orderBy={orderBy}
-                  onSelectAllClick={handleSelectAllClick}
-                  onRequestSort={handleRequestSort}
-                  rowCount={(users.items && users.items.length) || 0}
+          {/* Product table */}
+          <Paper className={classes.paper}>
+            <EnhancedTableToolbar
+              numSelected={selected.length}
+              idSelected={selected}
+              setSelected={setSelected}
+              setSearch={setSearch}
+              onSearch={onSearch}
+              addPermission={addPermission}
+              deletePermission={deletePermission}
+            />
+            {/* Filter Chip */}
+            <Grid
+              style={{ marginLeft: 8, marginBottom: 16 }}
+              container
+              spacing={2}
+            >
+              <Grid item>
+                <Chip
+                  color={statusFilter === "" ? "secondary" : "default"}
+                  id=""
+                  label="All"
+                  onClick={(e) => handleChipClick(e)}
                 />
-                <TableBody>
-                  {users.items.length > 0 &&
-                    stableSort(users.items, getComparator(order, orderBy)).map(
-                      (row, index) => {
+              </Grid>
+
+              <Grid item>
+                <Chip
+                  color={statusFilter === "true" ? "secondary" : "default"}
+                  id="true"
+                  label="Available"
+                  onClick={(e) => handleChipClick(e)}
+                />
+              </Grid>
+              <Grid item>
+                <Chip
+                  color={statusFilter === "false" ? "secondary" : "default"}
+                  id="false"
+                  label="Unavailable"
+                  onClick={(e) => handleChipClick(e)}
+                />
+              </Grid>
+            </Grid>
+            {/* Table Desktop version */}
+            <Hidden smDown>
+              <TableContainer className={classes.tableContainer}>
+                <Table
+                  stickyHeader
+                  className={classes.table}
+                  aria-labelledby="tableTitle"
+                  size={"small"}
+                  aria-label="enhanced table"
+                >
+                  <EnhancedTableHead
+                    classes={classes}
+                    numSelected={selected.length}
+                    order={order}
+                    orderBy={orderBy}
+                    onSelectAllClick={handleSelectAllClick}
+                    onRequestSort={handleRequestSort}
+                    rowCount={(users.items && users.items.length) || 0}
+                  />
+                  <TableBody>
+                    {users.items.length > 0 &&
+                      stableSort(
+                        users.items,
+                        getComparator(order, orderBy)
+                      ).map((row, index) => {
                         const isItemSelected = isSelected(row.id);
                         const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -618,6 +661,7 @@ export default function UserList() {
                                       component={Link}
                                       to={`/users-edit/${row.id}`}
                                       aria-label="edit"
+                                      disabled={!updatePermission}
                                     >
                                       <EditIcon />
                                     </IconButton>
@@ -627,82 +671,88 @@ export default function UserList() {
                             </TableCell>
                           </TableRow>
                         );
-                      }
+                      })}
+                    {emptyRows > 0 && (
+                      <TableRow style={{ height: 40 * emptyRows }}>
+                        <TableCell colSpan={6} />
+                      </TableRow>
                     )}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 40 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Hidden>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Hidden>
 
-          {/* Table Mobile version */}
-          <Hidden mdUp>
-            {users.items.map((row, index) => (
-              <Card variant="outlined" className={classes.cardRoot} key={index}>
-                <Grid container>
-                  <Grid item xs={3} container alignItems="center"></Grid>
-                  <Grid item xs={7}>
-                    <CardContent className={classes.cardContent}>
-                      <Typography gutterBottom variant="h6" component="h2">
-                        {row.title}
-                      </Typography>
-                      <Typography variant="body1" component="p" gutterBottom>
-                        Price: {row.price}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="textPrimary"
-                        component="p"
-                        style={{ marginBottom: 10 }}
-                      >
-                        Categories: {}
-                      </Typography>
-                      <Typography
-                        display="inline"
-                        variant="body2"
-                        className={clsx({
-                          [classes.status]: true,
-                          [classes.available]: row.active,
-                          [classes.unavailable]: !row.active,
-                        })}
-                      >
-                        {row.active ? "Available" : "Unavailable"}
-                      </Typography>
-                    </CardContent>
+            {/* Table Mobile version */}
+            <Hidden mdUp>
+              {users.items.map((row, index) => (
+                <Card
+                  variant="outlined"
+                  className={classes.cardRoot}
+                  key={index}
+                >
+                  <Grid container>
+                    <Grid item xs={3} container alignItems="center"></Grid>
+                    <Grid item xs={7}>
+                      <CardContent className={classes.cardContent}>
+                        <Typography gutterBottom variant="h6" component="h2">
+                          {row.title}
+                        </Typography>
+                        <Typography variant="body1" component="p" gutterBottom>
+                          Price: {row.price}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="textPrimary"
+                          component="p"
+                          style={{ marginBottom: 10 }}
+                        >
+                          Categories: {}
+                        </Typography>
+                        <Typography
+                          display="inline"
+                          variant="body2"
+                          className={clsx({
+                            [classes.status]: true,
+                            [classes.available]: row.active,
+                            [classes.unavailable]: !row.active,
+                          })}
+                        >
+                          {row.active ? "Available" : "Unavailable"}
+                        </Typography>
+                      </CardContent>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={2}
+                      container
+                      justify="flex-end"
+                      alignItems="flex-start"
+                    >
+                      <IconButton aria-label="edit">
+                        <EditIcon />
+                      </IconButton>
+                    </Grid>
                   </Grid>
-                  <Grid
-                    item
-                    xs={2}
-                    container
-                    justify="flex-end"
-                    alignItems="flex-start"
-                  >
-                    <IconButton aria-label="edit">
-                      <EditIcon />
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              </Card>
-            ))}
-          </Hidden>
+                </Card>
+              ))}
+            </Hidden>
 
-          {/* Pagination */}
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={users.count || 0}
-            rowsPerPage={rowsPerPage}
-            labelRowsPerPage={"Rows:"}
-            page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
-          />
-        </Paper>
-      </React.Fragment>
+            {/* Pagination */}
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={users.count || 0}
+              rowsPerPage={rowsPerPage}
+              labelRowsPerPage={"Rows:"}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
+          </Paper>
+        </React.Fragment>
+      ) : (
+        <CustomAlert openErrorAuthority={true} />
+      )}
     </AdminLayout>
   );
 }

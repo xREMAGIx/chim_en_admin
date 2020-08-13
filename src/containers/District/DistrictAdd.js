@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function DistrictAddModal() {
+export default function DistrictAddModal(props) {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
@@ -97,6 +97,7 @@ export default function DistrictAddModal() {
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleOpen}
+          disabled={props.disable}
         >
           Create
         </Button>
@@ -107,6 +108,7 @@ export default function DistrictAddModal() {
           aria-label="add-btn"
           component="span"
           onClick={handleOpen}
+          disabled={props.disable}
         >
           <AddIcon />
         </IconButton>
