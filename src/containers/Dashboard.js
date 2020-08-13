@@ -29,10 +29,11 @@ import { history } from "../store";
 import AdminLayout from "../components/Layout";
 //>>Charts
 import OrdersChart from "../components/Charts/OrdersChart";
+import UsersChart from "../components/Charts/UsersChart";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { userActions } from "../actions";
+import { dashboardActions } from "../actions";
 
 const useStyles = makeStyles((theme) => ({
   sectionBtn: {
@@ -80,9 +81,8 @@ export default function Dashboard() {
 
   //Redux
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users);
-  const products = useSelector((state) => state.products);
   const orders = useSelector((state) => state.orders);
+  const dashboard = useSelector((state) => state.dashboard);
 
   //Open login success snackbar
   const [open, setOpen] = useState(false);
@@ -95,7 +95,7 @@ export default function Dashboard() {
   };
   useEffect(() => {
     if (history.location.state === 200) setOpen(true);
-    dispatch(userActions.getAllNonPagination());
+    dispatch(dashboardActions.getAll());
   }, [dispatch]);
 
   //Colapse
@@ -119,6 +119,11 @@ export default function Dashboard() {
   );
   const handleLastestOrderCollapse = () => {
     setOpenLastestOrderCollapse(!openLastestOrderCollapse);
+  };
+
+  const [openTotalCollapse, setOpenTotalCollapse] = useState(true);
+  const handleTotalCollapse = () => {
+    setOpenTotalCollapse(!openTotalCollapse);
   };
 
   return (
@@ -151,8 +156,10 @@ export default function Dashboard() {
                         severity="info"
                         className={classes.statictisPaper}
                       >
-                        <Typography variant="h4">5</Typography>
-                        <Typography variant="h6">New Orders</Typography>
+                        <Typography variant="h4">
+                          {dashboard.items.payments || 0}
+                        </Typography>
+                        <Typography variant="h6">Orders</Typography>
                         <Button component={Link} to="/orders">
                           More info {">"}
                         </Button>
@@ -167,7 +174,7 @@ export default function Dashboard() {
                         className={classes.statictisPaper}
                       >
                         <Typography variant="h4">
-                          {products.count || 0}
+                          {dashboard.items.products || 0}
                         </Typography>
                         <Typography variant="h6">Products</Typography>
                         <Button component={Link} to="/products">
@@ -183,7 +190,9 @@ export default function Dashboard() {
                         severity="success"
                         className={classes.statictisPaper}
                       >
-                        <Typography variant="h4">{users.count || 0}</Typography>
+                        <Typography variant="h4">
+                          {dashboard.items.users || 0}
+                        </Typography>
                         <Typography variant="h6">Users</Typography>
                         <Button component={Link} to="/users">
                           More info {">"}
@@ -198,8 +207,8 @@ export default function Dashboard() {
                         severity="error"
                         className={classes.statictisPaper}
                       >
-                        <Typography variant="h4">5</Typography>
-                        <Typography variant="h6">Low stock products</Typography>
+                        <Typography variant="h4">0</Typography>
+                        <Typography variant="h6">Total</Typography>
                         <Button component={Link} to="/users">
                           More info {">"}
                         </Button>
@@ -236,15 +245,13 @@ export default function Dashboard() {
                 </Collapse>
               </Grid>
 
-              {/* Total chart */}
+              {/* User chart */}
               <Grid item xs={12} sm={12} md={6}>
                 <ButtonBase
                   className={classes.sectionBtn}
                   onClick={handleUserChartCollapse}
                 >
-                  <Typography variant="h6">
-                    Total of orders past 7 days
-                  </Typography>
+                  <Typography variant="h6">New Users past 7 days</Typography>
                   {openUserChartCollapse ? <ExpandLess /> : <ExpandMore />}
                 </ButtonBase>
                 <Collapse
@@ -252,13 +259,20 @@ export default function Dashboard() {
                   timeout="auto"
                   unmountOnExit
                 >
-                  <Paper className={classes.padding} elevation={4}></Paper>
+                  <Paper
+                    className={classes.padding}
+                    style={{ height: 300 }}
+                    elevation={4}
+                  >
+                    <UsersChart />
+                  </Paper>
                 </Collapse>
               </Grid>
             </Grid>
 
-            {/* Lastest Order */}
+            {/* Lastest Order and Total */}
             <Grid item container spacing={2}>
+              {/* Lastest Order */}
               <Grid item xs={12} sm={12} md={8}>
                 <ButtonBase
                   className={classes.sectionBtn}
@@ -349,6 +363,24 @@ export default function Dashboard() {
                       </Table>
                     </TableContainer>
                   </Paper>
+                </Collapse>
+              </Grid>
+
+              {/* Total */}
+              <Grid item xs={12} sm={12} md={4}>
+                <ButtonBase
+                  className={classes.sectionBtn}
+                  onClick={handleTotalCollapse}
+                >
+                  <Typography variant="h6">Total</Typography>
+                  {openTotalCollapse ? <ExpandLess /> : <ExpandMore />}
+                </ButtonBase>
+                <Collapse in={openTotalCollapse} timeout="auto" unmountOnExit>
+                  <Paper
+                    className={classes.padding}
+                    style={{ height: 300 }}
+                    elevation={4}
+                  ></Paper>
                 </Collapse>
               </Grid>
             </Grid>

@@ -366,84 +366,98 @@ export default function UserEdit(props) {
             </ButtonBase>
             <Collapse in={openPermissionCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
-                {/* actions */}
-                <Grid
-                  container
-                  justify="space-between"
-                  alignItems="center"
-                  spacing={2}
-                >
-                  <Grid item>
-                    <Button color="secondary" onClick={handleCheckAll}>
-                      Select All
-                    </Button>
-                    <Button onClick={handleCheckRemoveAll}>Deselect All</Button>
-                  </Grid>
-                  <Grid item>
-                    <div className={classes.search}>
-                      <div className={classes.searchIcon}>
-                        <SearchIcon />
-                      </div>
-                      <InputBase
-                        placeholder="Search…"
-                        classes={{
-                          root: classes.inputRoot,
-                          input: classes.inputInput,
-                        }}
-                        inputProps={{ "aria-label": "search" }}
-                        onKeyPress={onSearchTerm}
-                      />
-                    </div>
-                  </Grid>
-                </Grid>
+                {users.item && users.item.is_superuser ? (
+                  <Typography variant="h6" color="error" align="center">
+                    Super Admin will have all permissions. You can't change it!
+                  </Typography>
+                ) : (
+                  <React.Fragment>
+                    {/* actions */}
+                    <Grid
+                      container
+                      justify="space-between"
+                      alignItems="center"
+                      spacing={2}
+                    >
+                      <Grid item>
+                        <Button color="secondary" onClick={handleCheckAll}>
+                          Select All
+                        </Button>
+                        <Button onClick={handleCheckRemoveAll}>
+                          Deselect All
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        <div className={classes.search}>
+                          <div className={classes.searchIcon}>
+                            <SearchIcon />
+                          </div>
+                          <InputBase
+                            placeholder="Search…"
+                            classes={{
+                              root: classes.inputRoot,
+                              input: classes.inputInput,
+                            }}
+                            inputProps={{ "aria-label": "search" }}
+                            onKeyPress={onSearchTerm}
+                          />
+                        </div>
+                      </Grid>
+                    </Grid>
 
-                {/* check permission table */}
-                <TableContainer className={classes.tableContainer}>
-                  <Table
-                    stickyHeader
-                    className={classes.table}
-                    aria-label="simple table"
-                    size="small"
-                  >
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>ID</TableCell>
-                        <TableCell>Content type</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell align="right">Checkbox</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {permissions.items.length > 0 &&
-                        permissions.items
-                          .filter((permission) =>
-                            permission.name.toLowerCase().includes(searchTerm)
-                          )
-                          .map((row, index) => (
-                            <TableRow key={index}>
-                              <TableCell component="th" scope="row">
-                                {row.id}
-                              </TableCell>
-                              <TableCell>{row.content_type}</TableCell>
-                              <TableCell>{row.name}</TableCell>
-                              <TableCell align="right">
-                                <Checkbox
-                                  checked={
-                                    formData.user_permissions &&
-                                    formData.user_permissions.find(
-                                      (element) => element.id === row.id
-                                    )
-                                      ? true
-                                      : false
-                                  }
-                                  onChange={() => handleCheckPermission(row)}
-                                />
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                    {/* check permission table */}
+                    <TableContainer className={classes.tableContainer}>
+                      <Table
+                        stickyHeader
+                        className={classes.table}
+                        aria-label="simple table"
+                        size="small"
+                      >
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>ID</TableCell>
+                            <TableCell>Content type</TableCell>
+                            <TableCell>Name</TableCell>
+                            <TableCell align="right">Checkbox</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {permissions.items.length > 0 &&
+                            permissions.items
+                              .filter((permission) =>
+                                permission.name
+                                  .toLowerCase()
+                                  .includes(searchTerm)
+                              )
+                              .map((row, index) => (
+                                <TableRow key={index}>
+                                  <TableCell component="th" scope="row">
+                                    {row.id}
+                                  </TableCell>
+                                  <TableCell>{row.content_type}</TableCell>
+                                  <TableCell>{row.name}</TableCell>
+                                  <TableCell align="right">
+                                    <Checkbox
+                                      checked={
+                                        formData.user_permissions &&
+                                        formData.user_permissions.find(
+                                          (element) => element.id === row.id
+                                        )
+                                          ? true
+                                          : false
+                                      }
+                                      onChange={() =>
+                                        handleCheckPermission(row)
+                                      }
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </React.Fragment>
+                )}
               </Paper>
             </Collapse>
           </Grid>

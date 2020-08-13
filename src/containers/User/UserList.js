@@ -51,7 +51,12 @@ const headCells = [
   },
   { id: "email", numeric: false, disablePadding: false, label: "Email" },
   { id: "is_staff", numeric: true, disablePadding: false, label: "Is Staff" },
-
+  {
+    id: "created_at",
+    numeric: true,
+    disablePadding: false,
+    label: "Created At",
+  },
   { id: "action", numeric: true, disablePadding: false, label: "Action" },
 ];
 
@@ -360,11 +365,15 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "10px",
     color: "white",
     padding: theme.spacing(1),
+    margin: "0 5px",
   },
-  available: {
+  user: {
     backgroundColor: theme.palette.success.main,
   },
-  unavailable: {
+  staff: {
+    backgroundColor: theme.palette.warning.main,
+  },
+  superuser: {
     backgroundColor: theme.palette.error.main,
   },
 }));
@@ -379,8 +388,8 @@ export default function UserList() {
   const user = useSelector((state) => state.users.user);
 
   //Table Hooks
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("calories");
+  const [order, setOrder] = React.useState("desc");
+  const [orderBy, setOrderBy] = React.useState("created_at");
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -556,7 +565,7 @@ export default function UserList() {
                 <Chip
                   color={statusFilter === "true" ? "secondary" : "default"}
                   id="true"
-                  label="Available"
+                  label="Staff"
                   onClick={(e) => handleChipClick(e)}
                 />
               </Grid>
@@ -564,7 +573,7 @@ export default function UserList() {
                 <Chip
                   color={statusFilter === "false" ? "secondary" : "default"}
                   id="false"
-                  label="Unavailable"
+                  label="User"
                   onClick={(e) => handleChipClick(e)}
                 />
               </Grid>
@@ -645,12 +654,27 @@ export default function UserList() {
                                 variant="body2"
                                 className={clsx({
                                   [classes.status]: true,
-                                  [classes.available]: row.active,
-                                  [classes.unavailable]: !row.active,
+                                  [classes.superuser]: row.is_superuser,
+                                })}
+                              >
+                                {row.is_superuser ? "Super Admin" : null}
+                              </Typography>
+                              <Typography
+                                display="inline"
+                                variant="body2"
+                                className={clsx({
+                                  [classes.status]: true,
+                                  [classes.staff]: row.is_staff,
+                                  [classes.user]: !row.is_staff,
                                 })}
                               >
                                 {row.is_staff ? "Staff" : "User"}
                               </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              {row.created_at
+                                ? new Date(row.created_at).toLocaleString()
+                                : null}
                             </TableCell>
 
                             <TableCell align="right">

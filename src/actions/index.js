@@ -8,6 +8,7 @@ export * from "./user.actions";
 export * from "./district.actions";
 export * from "./city.actions";
 export * from "./permission.actions";
+export * from "./dashboard.actions";
 
 //Theme
 export const themeActions = {
