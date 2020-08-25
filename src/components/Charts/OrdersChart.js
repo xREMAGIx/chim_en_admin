@@ -15,7 +15,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { orderActions } from "../../actions";
 
-export default function OrdersChart() {
+export default function OrdersChart(props) {
   const theme = useTheme();
 
   //Redux
@@ -24,8 +24,8 @@ export default function OrdersChart() {
 
   //>>Load all orders
   useEffect(() => {
-    dispatch(orderActions.getAll(`?limit=500`));
-  }, [dispatch]);
+    props.loadChart && dispatch(orderActions.getAll(`?limit=500`));
+  }, [dispatch, props.loadChart]);
 
   //Order chart Data
   const [orderData, setOrderData] = useState([]);

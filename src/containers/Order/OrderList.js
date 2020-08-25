@@ -472,23 +472,26 @@ export default function OrderList() {
   //*Permission access
   const viewPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "view_payment"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "view_payment"
+      ))
       ? true
       : false;
   const updatePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "change_payment"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "change_payment"
+      ))
       ? true
       : false;
   const deletePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "delete_payment"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "delete_payment"
+      ))
       ? true
       : false;
 
@@ -539,7 +542,8 @@ export default function OrderList() {
             <Typography color="textPrimary">Order List</Typography>
           </Breadcrumbs>
 
-          {/* Success & Error handling */}
+          {/*Loading, Success & Error handling */}
+          {<CustomAlert loading={orders.loading} />}
           {orders.error && (
             <CustomAlert
               openError={true}
@@ -663,19 +667,19 @@ export default function OrderList() {
                           <TableCell>{row.user || "guest"}</TableCell>
                           {/* address */}
                           <TableCell>
-                            {(row.customer_details &&
-                              row.customer_details[0].address) ||
+                            {(row.customer_details[0] &&
+                              (row.customer_details[0].address || "")) ||
                               ""}
                           </TableCell>
                           {/* district */}
                           <TableCell>
-                            {(row.customer_details &&
+                            {(row.customer_details[0] &&
                               row.customer_details[0].dictrict) ||
                               ""}
                           </TableCell>
                           {/* city */}
                           <TableCell>
-                            {(row.customer_details &&
+                            {(row.customer_details[0] &&
                               row.customer_details[0].city) ||
                               ""}
                           </TableCell>
@@ -721,67 +725,58 @@ export default function OrderList() {
 
             {/* Table Mobile version */}
             <Hidden mdUp>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => (
-                  <Card
-                    variant="outlined"
-                    className={classes.cardRoot}
-                    key={index}
-                  >
-                    <Grid container>
-                      <Grid item xs={3} container alignItems="center">
-                        <CardActionArea>
-                          <CardMedia
-                            className={classes.cardMedia}
-                            image={row.image}
-                            title={row.name}
-                          />
-                        </CardActionArea>
-                      </Grid>
-                      <Grid item xs={7}>
-                        <CardContent className={classes.cardContent}>
-                          <Typography gutterBottom variant="h6" component="h2">
-                            {row.name}
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            component="p"
-                            gutterBottom
-                          >
-                            Price: {row.price}
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            color="textPrimary"
-                            component="p"
-                            gutterBottom
-                          >
-                            Status: {row.status}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="textPrimary"
-                            component="p"
-                          >
-                            Categories: {row.categories}
-                          </Typography>
-                        </CardContent>
-                      </Grid>
-                      <Grid
-                        item
-                        xs={2}
-                        container
-                        justify="flex-end"
-                        alignItems="flex-start"
-                      >
-                        <IconButton aria-label="edit">
-                          <EditIcon />
-                        </IconButton>
-                      </Grid>
+              {orders.items.map((row, index) => (
+                <Card
+                  variant="outlined"
+                  className={classes.cardRoot}
+                  key={index}
+                >
+                  <Grid container>
+                    <Grid item xs={8}>
+                      <CardContent className={classes.cardContent}>
+                        <Typography gutterBottom variant="h6" component="h2">
+                          Order ID: {row.id}
+                        </Typography>
+                        <Typography variant="body1" component="p" gutterBottom>
+                          User: {row.user || "guest"}
+                        </Typography>
+
+                        <Typography
+                          variant="h6"
+                          color="textPrimary"
+                          component="p"
+                        >
+                          Total: {row.amount.toLocaleString()}
+                        </Typography>
+                      </CardContent>
                     </Grid>
-                  </Card>
-                ))}
+                    <Grid item xs={2}>
+                      <Typography
+                        display="inline"
+                        className={clsx({
+                          [classes.status]: true,
+                          [classes.complete]: row.status === "Complete",
+                          [classes.processing]: row.status === "Processing",
+                          [classes.pending]: row.status === "Pending",
+                        })}
+                      >
+                        {row.status}
+                      </Typography>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={2}
+                      container
+                      justify="flex-end"
+                      alignItems="flex-start"
+                    >
+                      <IconButton aria-label="edit">
+                        <EditIcon />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                </Card>
+              ))}
             </Hidden>
 
             <TablePagination

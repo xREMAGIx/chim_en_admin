@@ -6,6 +6,7 @@ export * from "./district.constants";
 export * from "./city.constants";
 export * from "./permission.constants";
 export * from "./dashboard.constants";
+export * from "./input.constants";
 
 //Theme
 export const themeConstants = { CHANGE_THEME: "CHANGE_THEME" };

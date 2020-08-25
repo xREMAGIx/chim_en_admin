@@ -30,7 +30,10 @@ import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
 import Chip from "@material-ui/core/Chip";
 import EditIcon from "@material-ui/icons/Edit";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Card from "@material-ui/core/Card";
+import CardMedia from "@material-ui/core/CardMedia";
+import CardActionArea from "@material-ui/core/CardActionArea";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
 
@@ -40,23 +43,26 @@ import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { userActions, categoryActions } from "../../actions";
+import { productActions, categoryActions } from "../../actions";
 
 const headCells = [
   {
-    id: "username",
+    id: "image",
     numeric: false,
     disablePadding: false,
-    label: "Username",
+    label: "Image",
   },
-  { id: "email", numeric: false, disablePadding: false, label: "Email" },
-  { id: "is_staff", numeric: true, disablePadding: false, label: "Is Staff" },
+  { id: "sku", numeric: false, disablePadding: false, label: "SKU" },
+  { id: "name", numeric: false, disablePadding: false, label: "Name" },
+  { id: "price", numeric: true, disablePadding: false, label: "Price" },
   {
-    id: "created_at",
-    numeric: true,
+    id: "categories",
+    numeric: false,
     disablePadding: false,
-    label: "Created At",
+    label: "Categories",
   },
+  { id: "status", numeric: false, disablePadding: false, label: "Status" },
+  { id: "date", numeric: true, disablePadding: false, label: "Date" },
   { id: "action", numeric: true, disablePadding: false, label: "Action" },
 ];
 
@@ -216,7 +222,7 @@ const EnhancedTableToolbar = (props) => {
   //Handle Delete
   const { numSelected, idSelected } = props;
   const handleDelete = () => {
-    dispatch(userActions.delete(idSelected));
+    dispatch(productActions.delete(idSelected));
     props.setSelected([]);
   };
 
@@ -247,7 +253,7 @@ const EnhancedTableToolbar = (props) => {
             id="tableTitle"
             component="div"
           >
-            Users
+            Inputs
           </Typography>
         </Hidden>
       )}
@@ -256,8 +262,8 @@ const EnhancedTableToolbar = (props) => {
         <Tooltip title="Delete">
           <IconButton
             aria-label="delete"
-            onClick={handleDelete}
             disabled={!props.deletePermission}
+            onClick={handleDelete}
           >
             <DeleteIcon />
           </IconButton>
@@ -285,17 +291,22 @@ const EnhancedTableToolbar = (props) => {
             <Hidden xsDown>
               <Button
                 component={Link}
+                disabled={!props.addPermission}
                 variant="contained"
                 color="primary"
                 startIcon={<AddIcon />}
-                to="/users-add"
-                disabled={!props.addPermission}
+                to="/input-add"
               >
                 Create
               </Button>
             </Hidden>
             <Hidden smUp>
-              <IconButton color="primary" aria-label="add-btn" component="span">
+              <IconButton
+                color="primary"
+                aria-label="add-btn"
+                disabled={!props.addPermission}
+                component="span"
+              >
                 <AddIcon />
               </IconButton>
             </Hidden>
@@ -316,6 +327,18 @@ const EnhancedTableToolbar = (props) => {
 EnhancedTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
 };
+
+//Custom Functions
+function dateFormat(date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    // second: "numeric",
+    minute: "numeric",
+    hour: "numeric",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(date));
+}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -365,31 +388,28 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "10px",
     color: "white",
     padding: theme.spacing(1),
-    margin: "0 5px",
   },
-  user: {
+  available: {
     backgroundColor: theme.palette.success.main,
   },
-  staff: {
-    backgroundColor: theme.palette.warning.main,
-  },
-  superuser: {
+  unavailable: {
     backgroundColor: theme.palette.error.main,
   },
 }));
 
-export default function UserList() {
+export default function ProductList() {
   //UI Hook
   const classes = useStyles();
 
   //Redux Hook
   const dispatch = useDispatch();
-  const users = useSelector((state) => state.users);
+  const products = useSelector((state) => state.products);
+  const categories = useSelector((state) => state.categories);
   const user = useSelector((state) => state.users.user);
 
   //Table Hooks
-  const [order, setOrder] = React.useState("desc");
-  const [orderBy, setOrderBy] = React.useState("created_at");
+  const [order, setOrder] = React.useState("asc");
+  const [orderBy, setOrderBy] = React.useState("calories");
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -403,7 +423,7 @@ export default function UserList() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = users.items.map((n) => n.id);
+      const newSelecteds = products.items.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -443,10 +463,7 @@ export default function UserList() {
 
   const emptyRows =
     rowsPerPage -
-      Math.min(
-        rowsPerPage,
-        ((users.items && users.items.length) || 0) - page * rowsPerPage
-      ) || 0;
+      Math.min(rowsPerPage, products.items.length - page * rowsPerPage) || 0;
 
   //Main functions
   //*Permission access
@@ -454,7 +471,7 @@ export default function UserList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "view_user"
+        (permission) => permission.codename === "view_product"
       ))
       ? true
       : false;
@@ -462,7 +479,7 @@ export default function UserList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "add_user"
+        (permission) => permission.codename === "add_product"
       ))
       ? true
       : false;
@@ -470,7 +487,7 @@ export default function UserList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "change_user"
+        (permission) => permission.codename === "change_product"
       ))
       ? true
       : false;
@@ -478,7 +495,7 @@ export default function UserList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "delete_user"
+        (permission) => permission.codename === "delete_product"
       ))
       ? true
       : false;
@@ -488,7 +505,7 @@ export default function UserList() {
   //Chip function
   const handleChipClick = (e) => {
     dispatch(
-      userActions.getAll(
+      productActions.getAll(
         `?search=${search}&limit=${rowsPerPage}&offset=0&active=${e.currentTarget.id}`
       )
     );
@@ -500,18 +517,20 @@ export default function UserList() {
   //Handle Search
   const onSearch = () => {
     dispatch(
-      userActions.getAll(
+      productActions.getAll(
         `?search=${search}&limit=${rowsPerPage}&offset=0&active=${statusFilter}`
       )
     );
     setPage(0);
   };
 
-  //*load user (with Pagination) + load category
+  //*load product (with Pagination) + load category
   useEffect(() => {
     if (viewPermission) {
       dispatch(
-        userActions.getAll(`?limit=${rowsPerPage}&offset=${page * rowsPerPage}`)
+        productActions.getAll(
+          `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
+        )
       );
       dispatch(categoryActions.getAllNonPagination());
     }
@@ -527,17 +546,18 @@ export default function UserList() {
               Dashboard
             </Link>
 
-            <Typography color="textPrimary">User List</Typography>
+            <Typography color="textPrimary">Product List</Typography>
           </Breadcrumbs>
 
-          {/* Success & Error handling */}
-          {users.error && (
+          {/* Loading, Success & Error handling */}
+          {<CustomAlert loading={products.loading} />}
+          {products.error && (
             <CustomAlert
               openError={true}
-              messageError={users.error}
+              messageError={products.error}
             ></CustomAlert>
           )}
-          {users.success && <CustomAlert openSuccess={true}></CustomAlert>}
+          {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
           {/* Product table */}
           <Paper className={classes.paper}>
@@ -569,7 +589,7 @@ export default function UserList() {
                 <Chip
                   color={statusFilter === "true" ? "secondary" : "default"}
                   id="true"
-                  label="Staff"
+                  label="Available"
                   onClick={(e) => handleChipClick(e)}
                 />
               </Grid>
@@ -577,7 +597,7 @@ export default function UserList() {
                 <Chip
                   color={statusFilter === "false" ? "secondary" : "default"}
                   id="false"
-                  label="User"
+                  label="Unavailable"
                   onClick={(e) => handleChipClick(e)}
                 />
               </Grid>
@@ -599,12 +619,12 @@ export default function UserList() {
                     orderBy={orderBy}
                     onSelectAllClick={handleSelectAllClick}
                     onRequestSort={handleRequestSort}
-                    rowCount={(users.items && users.items.length) || 0}
+                    rowCount={products.items.length}
                   />
                   <TableBody>
-                    {users.items.length > 0 &&
+                    {products.items.length > 0 &&
                       stableSort(
-                        users.items,
+                        products.items,
                         getComparator(order, orderBy)
                       ).map((row, index) => {
                         const isItemSelected = isSelected(row.id);
@@ -627,8 +647,20 @@ export default function UserList() {
                               />
                             </TableCell>
 
-                            <TableCell>{row.username}</TableCell>
+                            <TableCell>
+                              <img
+                                height={48}
+                                width={48}
+                                src={
+                                  row.images.length > 0
+                                    ? row.images[0].image
+                                    : null
+                                }
+                                alt="No data"
+                              ></img>
+                            </TableCell>
 
+                            <TableCell>{row.id}</TableCell>
                             <TableCell
                               style={{
                                 maxWidth: "10vw",
@@ -642,56 +674,72 @@ export default function UserList() {
                                 <Tooltip
                                   title={
                                     <Typography variant="body2">
-                                      {row.email}
+                                      {row.title}
                                     </Typography>
                                   }
                                 >
                                   <Typography variant="body2" noWrap>
-                                    {row.email}
+                                    {row.title}
                                   </Typography>
                                 </Tooltip>
                               </Grid>
                             </TableCell>
                             <TableCell align="right">
+                              {row.price.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              {(
+                                categories.items.find(
+                                  (element) => element.id === row.category
+                                ) || {}
+                              ).title || row.category}
+                            </TableCell>
+                            <TableCell>
                               <Typography
                                 display="inline"
                                 variant="body2"
                                 className={clsx({
                                   [classes.status]: true,
-                                  [classes.superuser]: row.is_superuser,
+                                  [classes.available]: row.active,
+                                  [classes.unavailable]: !row.active,
                                 })}
                               >
-                                {row.is_superuser ? "Super Admin" : null}
-                              </Typography>
-                              <Typography
-                                display="inline"
-                                variant="body2"
-                                className={clsx({
-                                  [classes.status]: true,
-                                  [classes.staff]: row.is_staff,
-                                  [classes.user]: !row.is_staff,
-                                })}
-                              >
-                                {row.is_staff ? "Staff" : "User"}
+                                {row.active ? "Available" : "Unavailable"}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
-                              {row.created_at
-                                ? new Date(row.created_at).toLocaleString()
-                                : null}
+                              <Typography variant="body2" display="block">
+                                {dateFormat(row.updated)}
+                              </Typography>
+                              <Typography
+                                color="textSecondary"
+                                variant="body2"
+                                display="block"
+                              >
+                                {dateFormat(row.created_at)}
+                              </Typography>
                             </TableCell>
-
                             <TableCell align="right">
                               <Grid container justify="flex-end">
                                 <Grid item>
                                   <Tooltip title="Edit" aria-label="edit">
                                     <IconButton
                                       component={Link}
-                                      to={`/users-edit/${row.id}`}
-                                      aria-label="edit"
                                       disabled={!updatePermission}
+                                      to={`/products-edit/${row.id}`}
+                                      aria-label="edit"
                                     >
                                       <EditIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Grid>
+                                <Grid item>
+                                  <Tooltip
+                                    title="Duplicate"
+                                    aria-label="duplicate"
+                                  >
+                                    <IconButton aria-label="duplicate">
+                                      <FileCopyIcon />
                                     </IconButton>
                                   </Tooltip>
                                 </Grid>
@@ -709,45 +757,58 @@ export default function UserList() {
                 </Table>
               </TableContainer>
             </Hidden>
-
             {/* Table Mobile version */}
             <Hidden mdUp>
-              {users.items.map((row, index) => (
+              {products.items.map((row, index) => (
                 <Card
                   variant="outlined"
                   className={classes.cardRoot}
                   key={index}
                 >
                   <Grid container>
-                    <Grid item xs={3} container alignItems="center"></Grid>
+                    <Grid item xs={3} container alignItems="center">
+                      <CardActionArea>
+                        <CardMedia
+                          //className={classes.cardMedia}
+                          component="img"
+                          src={
+                            (row.images.length > 0 && row.images[0].image) || ""
+                          }
+                          alt={"No data"}
+                        />
+                      </CardActionArea>
+                    </Grid>
                     <Grid item xs={7}>
                       <CardContent className={classes.cardContent}>
                         <Typography gutterBottom variant="h6" component="h2">
-                          {row.username}
+                          {row.title}
                         </Typography>
-                        <Typography variant="body2" component="h6" gutterBottom>
-                          {row.email}
+                        <Typography variant="body1" component="p" gutterBottom>
+                          Price: {row.price}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="textPrimary"
+                          component="p"
+                          style={{ marginBottom: 10 }}
+                        >
+                          Categories:{" "}
+                          {(
+                            categories.items.find(
+                              (element) => element.id === row.category
+                            ) || {}
+                          ).title || row.category}
                         </Typography>
                         <Typography
                           display="inline"
                           variant="body2"
                           className={clsx({
                             [classes.status]: true,
-                            [classes.superuser]: row.is_superuser,
+                            [classes.available]: row.active,
+                            [classes.unavailable]: !row.active,
                           })}
                         >
-                          {row.is_superuser ? "Super Admin" : null}
-                        </Typography>
-                        <Typography
-                          display="inline"
-                          variant="body2"
-                          className={clsx({
-                            [classes.status]: true,
-                            [classes.staff]: row.is_staff,
-                            [classes.user]: !row.is_staff,
-                          })}
-                        >
-                          {row.is_staff ? "Staff" : "User"}
+                          {row.active ? "Available" : "Unavailable"}
                         </Typography>
                       </CardContent>
                     </Grid>
@@ -758,12 +819,7 @@ export default function UserList() {
                       justify="flex-end"
                       alignItems="flex-start"
                     >
-                      <IconButton
-                        component={Link}
-                        to={`/users-edit/${row.id}`}
-                        aria-label="edit"
-                        disabled={!updatePermission}
-                      >
+                      <IconButton aria-label="edit">
                         <EditIcon />
                       </IconButton>
                     </Grid>
@@ -771,12 +827,11 @@ export default function UserList() {
                 </Card>
               ))}
             </Hidden>
-
             {/* Pagination */}
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={users.count || 0}
+              count={products.count || 0}
               rowsPerPage={rowsPerPage}
               labelRowsPerPage={"Rows:"}
               page={page}

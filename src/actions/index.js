@@ -9,6 +9,7 @@ export * from "./district.actions";
 export * from "./city.actions";
 export * from "./permission.actions";
 export * from "./dashboard.actions";
+export * from "./input.actions";
 
 //Theme
 export const themeActions = {

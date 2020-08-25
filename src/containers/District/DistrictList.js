@@ -436,30 +436,34 @@ export default function DistrictList() {
   //*Permission access
   const viewPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "view_district"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "view_district"
+      ))
       ? true
       : false;
   const addPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "add_district"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "add_district"
+      ))
       ? true
       : false;
   const updatePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "change_district"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "change_district"
+      ))
       ? true
       : false;
   const deletePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "delete_district"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "delete_district"
+      ))
       ? true
       : false;
 
@@ -498,7 +502,8 @@ export default function DistrictList() {
             <Typography color="textPrimary">District List</Typography>
           </Breadcrumbs>
 
-          {/* Success & Error handling */}
+          {/*Loading, Success & Error handling */}
+          {<CustomAlert loading={districts.loading} />}
           {districts.error && (
             <CustomAlert
               openError={true}
@@ -613,7 +618,7 @@ export default function DistrictList() {
                       <Grid item xs={8}>
                         <CardContent className={classes.cardContent}>
                           <Typography gutterBottom variant="h6" component="h2">
-                            Name: {row.title}
+                            Name: {row.name}
                           </Typography>
                           <Typography
                             variant="body1"
@@ -621,6 +626,25 @@ export default function DistrictList() {
                             gutterBottom
                           >
                             ID: {row.id}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            component="p"
+                            gutterBottom
+                          >
+                            City:{" "}
+                            {(
+                              cities.items.find(
+                                (city) => city.id === row.city
+                              ) || {}
+                            ).name || row.city}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            component="p"
+                            gutterBottom
+                          >
+                            Shipping fee: {row.ship_fee.toLocaleString()}
                           </Typography>
                         </CardContent>
                       </Grid>
@@ -646,20 +670,16 @@ export default function DistrictList() {
                   </Card>
                 ))}
             </Hidden>
-            {!districts.loading ? (
-              <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={districts.items.length || 0}
-                rowsPerPage={rowsPerPage}
-                labelRowsPerPage={"Rows:"}
-                page={page}
-                onChangePage={handleChangePage}
-                onChangeRowsPerPage={handleChangeRowsPerPage}
-              />
-            ) : (
-              <Skeleton variant="rect" height={100} />
-            )}
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={districts.count || 0}
+              rowsPerPage={rowsPerPage}
+              labelRowsPerPage={"Rows:"}
+              page={page}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+            />
           </Paper>
         </React.Fragment>
       ) : (

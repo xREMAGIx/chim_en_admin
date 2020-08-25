@@ -420,30 +420,34 @@ export default function CityList() {
   //*Permission access
   const viewPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "view_city"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "view_city"
+      ))
       ? true
       : false;
   const addPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "add_city"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "add_city"
+      ))
       ? true
       : false;
   const updatePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "change_city"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "change_city"
+      ))
       ? true
       : false;
   const deletePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "delete_city"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "delete_city"
+      ))
       ? true
       : false;
 
@@ -478,7 +482,8 @@ export default function CityList() {
             <Typography color="textPrimary">City List</Typography>
           </Breadcrumbs>
 
-          {/* Success & Error handling */}
+          {/*Loading, Success & Error handling */}
+          {<CustomAlert loading={cities.loading} />}
           {cities.error && (
             <CustomAlert
               openError={true}

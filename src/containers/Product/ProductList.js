@@ -469,30 +469,34 @@ export default function ProductList() {
   //*Permission access
   const viewPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "view_product"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "view_product"
+      ))
       ? true
       : false;
   const addPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "add_product"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "add_product"
+      ))
       ? true
       : false;
   const updatePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "change_product"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "change_product"
+      ))
       ? true
       : false;
   const deletePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "delete_product"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "delete_product"
+      ))
       ? true
       : false;
 
@@ -545,7 +549,8 @@ export default function ProductList() {
             <Typography color="textPrimary">Product List</Typography>
           </Breadcrumbs>
 
-          {/* Success & Error handling */}
+          {/* Loading, Success & Error handling */}
+          {<CustomAlert loading={products.loading} />}
           {products.error && (
             <CustomAlert
               openError={true}

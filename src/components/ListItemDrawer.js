@@ -26,6 +26,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import LocationCityIcon from "@material-ui/icons/LocationCity";
 import StreetviewIcon from "@material-ui/icons/Streetview";
+import ImportExportIcon from "@material-ui/icons/ImportExport";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -238,6 +239,27 @@ export default function MainListItems(props) {
                 <CategoryIcon />
               </ListItemIcon>
               <ListItemText primary="Categories" />
+            </ListItem>
+          </Tooltip>
+        </List>
+        <List component="div" disablePadding>
+          <Tooltip
+            disableFocusListener
+            disableTouchListener
+            arrow
+            placement="right"
+            title={<Typography variant="body2">Input & Output</Typography>}
+          >
+            <ListItem
+              className={classes.nested}
+              button
+              component={Link}
+              to="/input-output"
+            >
+              <ListItemIcon>
+                <ImportExportIcon />
+              </ListItemIcon>
+              <ListItemText primary="Input & Output" />
             </ListItem>
           </Tooltip>
         </List>

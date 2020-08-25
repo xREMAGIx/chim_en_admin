@@ -13,8 +13,11 @@ import Typography from "@material-ui/core/Typography";
 import Container from "@material-ui/core/Container";
 import Paper from "@material-ui/core/Paper";
 
+//Custom Components
+import CustomAlert from "../components/Alert";
+
 //Redux
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { userActions } from "../actions";
 
 const useStyles = makeStyles((theme) => ({
@@ -43,6 +46,7 @@ export default function Login() {
 
   //Redux
   const dispatch = useDispatch();
+  const users = useSelector((state) => state.users);
 
   //Login formData
   const [formData, setFormData] = useState({
@@ -66,6 +70,14 @@ export default function Login() {
 
   return (
     <Container component="main" maxWidth="sm">
+      {/* Loading, Success & Error handling */}
+      {<CustomAlert loading={users.loading} />}
+
+      {users.error && (
+        <CustomAlert openError={true} messageError={users.error}></CustomAlert>
+      )}
+      {users.success && <CustomAlert openSuccess={true}></CustomAlert>}
+
       <CssBaseline />
       <Paper className={classes.paper} elevation={4}>
         <Avatar className={classes.avatar}>
@@ -116,9 +128,9 @@ export default function Login() {
             </Link> */}
           </Grid>
           <Grid item>
-            <Link to="/register" variant="body2">
+            {/* <Link to="/register" variant="body2">
               {"Don't have an account? Sign Up"}
-            </Link>
+            </Link> */}
           </Grid>
         </Grid>
       </Paper>

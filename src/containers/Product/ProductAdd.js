@@ -244,9 +244,8 @@ export default function ProductAdd() {
                         id="combo-box-category"
                         fullWidth
                         options={categories.items}
-                        value={categories.items[0] || null}
                         onChange={(e, newValue) =>
-                          setFormData({ ...formData, active: newValue.value })
+                          setFormData({ ...formData, category: newValue.id })
                         }
                         getOptionLabel={(option) => option.title}
                         renderInput={(params) => (

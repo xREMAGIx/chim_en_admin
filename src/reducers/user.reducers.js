@@ -3,7 +3,7 @@ import setAuthToken from "../store/setAuthToken";
 
 const initialState = {
   token: localStorage.getItem("token"),
-  loading: true,
+  loading: false,
   isAuthenticated: false,
   items: [],
   item: null,
@@ -29,7 +29,7 @@ export function users(state = initialState, action) {
       };
     case userConstants.LOGIN_FAILURE:
       localStorage.removeItem("token");
-      return { ...state, error: action.error };
+      return { ...state, loading: false, error: action.error };
 
     case userConstants.REGISTER_REQUEST:
       return {
@@ -69,7 +69,8 @@ export function users(state = initialState, action) {
         user: action.user,
       };
     case userConstants.GETME_FAILURE:
-      return { ...state, error: action.error };
+      setAuthToken(localStorage.getItem("token"));
+      return { ...state, loading: false, error: action.error };
 
     case userConstants.DELETE_REQUEST:
       // add 'deleting:true' property to user being deleted

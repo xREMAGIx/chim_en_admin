@@ -26,6 +26,9 @@ import CityList from "./containers/City/CityList";
 //>>User
 import UserList from "./containers/User/UserList";
 import UserEdit from "./containers/User/UserEdit";
+//>>Input-Output
+import InputOuputList from "./containers/Input-Output/InputOutputList";
+import InputAdd from "./containers/Input-Output/InputAdd";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -47,7 +50,7 @@ const App = () => {
   const theme = useSelector((state) => state.theme);
 
   useEffect(() => {
-    dispatch(userActions.getMe());
+    if (localStorage.getItem("token")) dispatch(userActions.getMe());
   }, [dispatch]);
 
   return (
@@ -108,6 +111,18 @@ const App = () => {
               exact
               path="/users-edit/:id"
               component={UserEdit}
+            ></AdminRoute>
+
+            {/* Input & Output */}
+            <AdminRoute
+              exact
+              path="/input-output"
+              component={InputOuputList}
+            ></AdminRoute>
+            <AdminRoute
+              exact
+              path="/input-add"
+              component={InputAdd}
             ></AdminRoute>
           </Switch>
         </Router>

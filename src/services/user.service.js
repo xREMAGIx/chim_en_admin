@@ -1,5 +1,6 @@
 //import { authHeader } from "../store";
 import axios from "axios";
+import setAuthToken from "../store/setAuthToken";
 
 export const userService = {
   login,
@@ -34,13 +35,17 @@ async function getMe() {
       Authorization: `Token ${localStorage.getItem("token")}`,
     },
   };
-  return await axios.get(`/api/auth/user`, requestConfig).then(handleResponse);
+  return await axios
+    .get(`/api/auth/user`, requestConfig)
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function logout() {
   // remove user from local storage to log user out
   //await axios.post("/api/auth/logout/");
-  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  setAuthToken(localStorage.getItem("token"));
 }
 
 async function getAll(url = null) {
@@ -134,4 +139,16 @@ function handleResponse(response) {
   }
 
   return data;
+}
+
+function handleError(error) {
+  if (error.response && error.response.data) {
+    let errorkey = Object.keys(error.response.data)[0];
+
+    let errorValue = error.response.data[errorkey];
+
+    return Promise.reject(errorkey.toUpperCase() + ": " + errorValue);
+  } else {
+    return Promise.reject(error.response.data.error.message);
+  }
 }

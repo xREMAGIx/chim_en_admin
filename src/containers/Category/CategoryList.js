@@ -417,30 +417,34 @@ export default function CategoryList() {
   //*Permission access
   const viewPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "view_category"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "view_category"
+      ))
       ? true
       : false;
   const addPermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "add_category"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "add_category"
+      ))
       ? true
       : false;
   const updatePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "change_category"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "change_category"
+      ))
       ? true
       : false;
   const deletePermission =
     user &&
-    user.user_permissions.find(
-      (permission) => permission.codename === "delete_category"
-    )
+    (user.is_superuser ||
+      user.user_permissions.find(
+        (permission) => permission.codename === "delete_category"
+      ))
       ? true
       : false;
 
@@ -454,7 +458,7 @@ export default function CategoryList() {
     setPage(0);
   };
 
-  //*load orders (with Pagination)
+  //*load categories (with Pagination)
   useEffect(() => {
     dispatch(
       categoryActions.getAll(
@@ -476,7 +480,8 @@ export default function CategoryList() {
             <Typography color="textPrimary">Category List</Typography>
           </Breadcrumbs>
 
-          {/* Success & Error handling */}
+          {/*Loading, Success & Error handling */}
+          {<CustomAlert loading={categories.loading} />}
           {categories.error && (
             <CustomAlert
               openError={true}

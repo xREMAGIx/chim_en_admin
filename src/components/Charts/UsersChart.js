@@ -15,7 +15,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { userActions } from "../../actions";
 
-export default function UsersChart() {
+export default function UsersChart(props) {
   const theme = useTheme();
 
   //Redux
@@ -24,8 +24,8 @@ export default function UsersChart() {
 
   //>>Load all users
   useEffect(() => {
-    dispatch(userActions.getAll(`?limit=500`));
-  }, [dispatch]);
+    props.loadChart && dispatch(userActions.getAll(`?limit=500`));
+  }, [dispatch, props.loadChart]);
 
   //User chart Data
   const [userData, setUserData] = useState([]);

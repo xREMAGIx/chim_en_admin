@@ -7,6 +7,7 @@ import { districts } from "./district.reducers";
 import { cities } from "./city.reducers";
 import { permissions } from "./permission.reducers";
 import { dashboard } from "./dashboard.reducers";
+import { inputs } from "./input.reducers";
 
 //Theme
 import { themeConstants } from "../constants";
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
   theme,
   permissions,
   dashboard,
+  inputs,
 });
 
 export default rootReducer;

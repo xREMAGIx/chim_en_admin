@@ -90,12 +90,18 @@ export default function Dashboard() {
     if (reason === "clickaway") {
       return;
     }
-
     setOpen(false);
   };
+
+  //Load charts
+  const [loadChart, setLoadChart] = useState(false);
+
   useEffect(() => {
-    if (history.location.state === 200) setOpen(true);
-    dispatch(dashboardActions.getAll());
+    if (history.location.state === 200) {
+      setOpen(true);
+      setLoadChart(true);
+      dispatch(dashboardActions.getAll());
+    }
   }, [dispatch]);
 
   //Colapse
@@ -240,7 +246,7 @@ export default function Dashboard() {
                     style={{ height: 300 }}
                     elevation={4}
                   >
-                    <OrdersChart />
+                    <OrdersChart loadChart={loadChart} />
                   </Paper>
                 </Collapse>
               </Grid>
@@ -264,7 +270,7 @@ export default function Dashboard() {
                     style={{ height: 300 }}
                     elevation={4}
                   >
-                    <UsersChart />
+                    <UsersChart loadChart={loadChart} />
                   </Paper>
                 </Collapse>
               </Grid>
