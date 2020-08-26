@@ -23,13 +23,16 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 //Custom Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { orderActions, productActions, inputActions } from "../../actions";
+import { inputActions, productActions } from "../../actions";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -78,11 +81,12 @@ export default function InputAdd(props) {
   //Redux Hooks
   const dispatch = useDispatch();
   const products = useSelector((state) => state.products);
+  const inputs = useSelector((state) => state.inputs);
 
-  //>>Load order edit
+  //>>Load products
   useEffect(() => {
     dispatch(productActions.getAllNonPagination());
-  }, [dispatch, props.match.params.id]);
+  }, [dispatch]);
 
   //Colapse
   // const [openInfoCollapse, setOpenInfoCollapse] = useState(true);
@@ -107,6 +111,10 @@ export default function InputAdd(props) {
         product_details: formData,
       })
     );
+  };
+
+  const onDeleteItem = (id) => {
+    setFormData(formData.filter((el) => el.product_id !== id));
   };
 
   const keyPressed = (e) => {
@@ -140,6 +148,15 @@ export default function InputAdd(props) {
           <Typography color="textPrimary">Input Add</Typography>
         </Breadcrumbs>
 
+        {<CustomAlert loading={inputs.loading} />}
+        {inputs.error && (
+          <CustomAlert
+            openError={true}
+            messageError={inputs.error}
+          ></CustomAlert>
+        )}
+        {inputs.success && <CustomAlert openSuccess={true}></CustomAlert>}
+
         {/* Main */}
         <Grid container spacing={3}>
           {/* Order detail*/}
@@ -172,6 +189,7 @@ export default function InputAdd(props) {
                       options={products.items}
                       getOptionLabel={(option) => option.title}
                       onChange={(e, newValue) =>
+                        newValue &&
                         setProductSelected({
                           product_id: newValue.id,
                           product_name: newValue.title,
@@ -215,6 +233,7 @@ export default function InputAdd(props) {
                         <TableCell align="right">Price</TableCell>
                         <TableCell align="right">Quantity</TableCell>
                         <TableCell align="right">Total</TableCell>
+                        <TableCell align="right">Actions</TableCell>
                       </TableRow>
                     </TableHead>
 
@@ -224,7 +243,9 @@ export default function InputAdd(props) {
                           <TableRow key={index}>
                             <TableCell>{row.product_name}</TableCell>
                             <TableCell align="right">
-                              {row.product_price.toLocaleString() || 0}
+                              {(row.product_price &&
+                                row.product_price.toLocaleString()) ||
+                                0}
                             </TableCell>
                             <TableCell align="right">
                               <TextField
@@ -254,6 +275,14 @@ export default function InputAdd(props) {
                               {(
                                 row.product_price * row.product_amount
                               ).toLocaleString() || 0}
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton
+                                onClick={() => onDeleteItem(row.product_id)}
+                                aria-label="delete"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
                             </TableCell>
                           </TableRow>
                         ))}

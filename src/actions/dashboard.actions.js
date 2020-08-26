@@ -13,15 +13,7 @@ function getAll(url) {
         dispatch(success(dashboard));
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };

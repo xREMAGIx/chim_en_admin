@@ -112,7 +112,7 @@ function add(input, image) {
     await inputService.add(input, image).then(
       (input) => {
         dispatch(success(input));
-        history.push({ pathname: "/inputs", state: 201 });
+        history.push({ pathname: "/input-output", state: 201 });
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -139,13 +139,13 @@ function add(input, image) {
   }
 }
 
-function update(id, input, image, delImageId) {
+function update(id, input) {
   return async (dispatch) => {
     dispatch(request(id));
-    await inputService.update(id, input, image, delImageId).then(
+    await inputService.update(id, input).then(
       (input) => {
         dispatch(success(id));
-        history.push({ pathname: "/inputs", state: 202 });
+        history.push({ pathname: "/input-output", state: 202 });
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -179,7 +179,7 @@ function _delete(id) {
     await inputService.delete(id).then(
       async (id) => {
         dispatch(success(id));
-        history.replace({ pathname: "/inputs", state: 203 });
+        history.replace({ pathname: "/input-output", state: 203 });
       },
       (error) => {
         if (error.response && error.response.data) {

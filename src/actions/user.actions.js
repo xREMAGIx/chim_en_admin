@@ -61,15 +61,7 @@ function login(user) {
         history.push({ pathname: "/", state: 200 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -111,15 +103,7 @@ function register(user) {
         history.push({ pathname: "/", state: 200 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -145,15 +129,7 @@ function add(user) {
         history.push({ pathname: "/users", state: 201 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -198,15 +174,7 @@ function getAllNonPagination() {
     await userService.getAllNonPagination().then(
       (users) => dispatch(success(users)),
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -228,15 +196,7 @@ function getById(id) {
     await userService.getById(id).then(
       (user) => dispatch(success(user)),
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -262,15 +222,7 @@ function update(id, user, user_permissions) {
         history.push({ pathname: "/users", state: 202 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -298,15 +250,7 @@ function _delete(id) {
         await dispatch(getAll());
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };

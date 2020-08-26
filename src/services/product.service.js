@@ -13,15 +13,21 @@ export const productService = {
 async function getAll(url = null) {
   const params = url === null ? `/api/products/` : `/api/products/` + url;
 
-  return await axios.get(params).then(handleResponse);
+  return await axios.get(params).then(handleResponse).catch(handleError);
 }
 
 async function getAllNonPagination() {
-  return await axios.get(`/api/products/`).then(handleResponse);
+  return await axios
+    .get(`/api/products/`)
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function getById(id) {
-  return await axios.get(`/api/products/${id}`).then(handleResponse);
+  return await axios
+    .get(`/api/products/${id}`)
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function add(product, image) {
@@ -53,14 +59,15 @@ async function add(product, image) {
   //         imageData,
   //         configFormData
   //       )
-  //       .then(handleResponse);
+  //       .then(handleResponse).catch(handleError);
   //   } catch (error) {
   //     console.log(error);
   //   }
   // } else {
   return await axios
     .post("/api/products/", body, requestConfig)
-    .then(handleResponse);
+    .then(handleResponse)
+    .catch(handleError);
   //}
 }
 
@@ -95,7 +102,8 @@ async function update(id, product, image, delImage) {
   if (imageData.get("images")) {
     await axios
       .put(`/api/products/${id}/`, body, requestConfig)
-      .then(handleResponse);
+      .then(handleResponse)
+      .catch(handleError);
 
     const configFormData = {
       headers: {
@@ -104,11 +112,13 @@ async function update(id, product, image, delImage) {
     };
     return await axios
       .post("/api/products/images", imageData, configFormData)
-      .then(handleResponse);
+      .then(handleResponse)
+      .catch(handleError);
   } else {
     return await axios
       .put(`/api/products/${id}/`, body, requestConfig)
-      .then(handleResponse);
+      .then(handleResponse)
+      .catch(handleError);
   }
 }
 
@@ -121,25 +131,30 @@ async function _delete(ids) {
   const promises = await ids.map((id) => {
     return axios.delete(`/api/products/${id}`, requestConfig);
   });
-  return Promise.all(promises).then(handleResponse);
+  return Promise.all(promises).then(handleResponse).catch(handleError);
 }
 
 function handleResponse(response) {
-  let data;
-  data = response.data;
+  let data = response.data;
 
-  if (response.status > 400) {
-    const error = (data && data.message) || response.statusText;
+  return data;
+}
+
+function handleError(response) {
+  if (response.response.status === 500) {
+    return Promise.reject("Server Error");
+  }
+  if (response.response.status > 400) {
+    const error = response.data.data;
 
     if (error.response && error.response.data) {
       let errorkey = Object.keys(error.response.data)[0];
 
       let errorValue = error.response.data[errorkey][0];
 
-      return errorkey.toUpperCase() + ": " + errorValue;
+      return Promise.reject(errorkey.toUpperCase() + ": " + errorValue);
     } else {
-      return error.toString();
+      return Promise.reject(error.toString());
     }
   }
-  return data;
 }

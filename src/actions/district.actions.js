@@ -19,15 +19,7 @@ function getAll(url) {
         dispatch(success(districts));
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -49,15 +41,7 @@ function getAllNonPagination() {
     await districtService.getAllNonPagination().then(
       (districts) => dispatch(success(districts)),
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -81,15 +65,7 @@ function getById(id) {
         dispatch(success(districts));
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -114,15 +90,7 @@ function add(district) {
         history.replace({ pathname: "/districts", state: 201 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -148,15 +116,7 @@ function update(id, district) {
         history.replace({ pathname: "/districts", state: 202 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -182,15 +142,7 @@ function _delete(id) {
         history.replace({ pathname: "/districts", state: 203 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };

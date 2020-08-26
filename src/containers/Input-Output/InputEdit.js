@@ -23,13 +23,15 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import IconButton from "@material-ui/core/IconButton";
+import DeleteIcon from "@material-ui/icons/Delete";
 
 //Custom Components
 import AdminLayout from "../../components/Layout";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { orderActions, productActions } from "../../actions";
+import { inputActions, productActions } from "../../actions";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -72,17 +74,26 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function InputAdd(props) {
+export default function InputEdit(props) {
   const classes = useStyles();
 
   //Redux Hooks
   const dispatch = useDispatch();
   const products = useSelector((state) => state.products);
+  const inputs = useSelector((state) => state.inputs);
 
-  //>>Load order edit
+  //>>Load products
   useEffect(() => {
     dispatch(productActions.getAllNonPagination());
+    dispatch(inputActions.getById(props.match.params.id));
   }, [dispatch, props.match.params.id]);
+
+  //>>Pass input to formData
+  useEffect(() => {
+    setInput((input) => ({ ...input, provider: inputs.item.provider }));
+    inputs.item.product_details &&
+      setFormData([...inputs.item.product_details]);
+  }, [inputs.item]);
 
   //Colapse
   // const [openInfoCollapse, setOpenInfoCollapse] = useState(true);
@@ -98,25 +109,38 @@ export default function InputAdd(props) {
   //Main funtion
   const [formData, setFormData] = useState([]);
   const [productSelected, setProductSelected] = useState();
+  const [input, setInput] = useState({
+    provider: "",
+  });
 
   const onSubmit = () => {
-    dispatch(orderActions.update(props.match.params.id, formData));
+    dispatch(
+      inputActions.update(props.match.params.id, {
+        ...input,
+        product_details: formData,
+      })
+    );
+  };
+
+  const onDeleteItem = (id) => {
+    setFormData(formData.filter((el) => el.product_id !== id));
   };
 
   const keyPressed = (e) => {
-    if (e.key === "Enter") onAddList(e);
+    if (e.key === "Enter" && productSelected !== undefined) onAddList(e);
   };
 
   const onAddList = (e) => {
-    if (formData.find((el) => el.id === productSelected.id))
+    if (formData.find((el) => el.product_id === productSelected.product_id))
       setFormData(
         formData.map((el) =>
-          el.id === productSelected.id
-            ? { ...productSelected, quantity: el.quantity + 1 }
+          el.product_id === productSelected.product_id
+            ? { ...productSelected, product_amount: el.product_amount + 1 }
             : el
         )
       );
-    else setFormData([...formData, { ...productSelected, quantity: 1 * 1 }]);
+    else
+      setFormData([...formData, { ...productSelected, product_amount: 1 * 1 }]);
   };
 
   return (
@@ -127,10 +151,12 @@ export default function InputAdd(props) {
           <Link className={classes.link} to="/">
             Dashboard
           </Link>
-          <Link className={classes.link} to="/orders">
+          <Link className={classes.link} to="/input-output">
             Input List
           </Link>
-          <Typography color="textPrimary">Input Add</Typography>
+          <Typography color="textPrimary">
+            Input Edit #{inputs.item.id}
+          </Typography>
         </Breadcrumbs>
 
         {/* Main */}
@@ -147,13 +173,32 @@ export default function InputAdd(props) {
             <Collapse in={openDetailCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
                 <Grid container spacing={3} alignItems="center">
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      id="outlined-manufacturer"
+                      label="Manufacturer"
+                      variant="outlined"
+                      value={input.provider || ""}
+                      onChange={(e) =>
+                        setInput({ ...input, provider: e.target.value })
+                      }
+                    />
+                  </Grid>
                   <Grid item xs={12} sm={9}>
                     <Autocomplete
                       id="combo-box-demo"
                       loading={products.loading}
                       options={products.items}
                       getOptionLabel={(option) => option.title}
-                      onChange={(e, newValue) => setProductSelected(newValue)}
+                      onChange={(e, newValue) =>
+                        setProductSelected({
+                          product_id: newValue.id,
+                          product_name: newValue.title,
+                          product_price: newValue.price,
+                          product_promotion: newValue.promotion,
+                        })
+                      }
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -190,6 +235,7 @@ export default function InputAdd(props) {
                         <TableCell align="right">Price</TableCell>
                         <TableCell align="right">Quantity</TableCell>
                         <TableCell align="right">Total</TableCell>
+                        <TableCell align="right">Actions</TableCell>
                       </TableRow>
                     </TableHead>
 
@@ -197,19 +243,9 @@ export default function InputAdd(props) {
                       {formData.length > 0 &&
                         formData.map((row, index) => (
                           <TableRow key={index}>
-                            <TableCell>
-                              {row.title}
-                              {
-                                <Typography
-                                  variant="body2"
-                                  color="textSecondary"
-                                >
-                                  sku: {row.sku || ""}
-                                </Typography>
-                              }
-                            </TableCell>
+                            <TableCell>{row.product_name}</TableCell>
                             <TableCell align="right">
-                              {row.price.toLocaleString() || 0}
+                              {row.product_price.toLocaleString() || 0}
                             </TableCell>
                             <TableCell align="right">
                               <TextField
@@ -217,7 +253,7 @@ export default function InputAdd(props) {
                                 id="standard-number"
                                 size="small"
                                 type="number"
-                                value={row.quantity || 0}
+                                value={row.product_amount || 0}
                                 InputLabelProps={{
                                   shrink: true,
                                 }}
@@ -227,7 +263,7 @@ export default function InputAdd(props) {
                                       el.id === row.id
                                         ? {
                                             ...row,
-                                            quantity: e.target.value,
+                                            product_amount: e.target.value,
                                           }
                                         : el
                                     )
@@ -236,7 +272,17 @@ export default function InputAdd(props) {
                               />
                             </TableCell>
                             <TableCell align="right">
-                              {(row.price * row.quantity).toLocaleString() || 0}
+                              {(
+                                row.product_price * row.product_amount
+                              ).toLocaleString() || 0}
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton
+                                onClick={() => onDeleteItem(row.product_id)}
+                                aria-label="delete"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -249,10 +295,15 @@ export default function InputAdd(props) {
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="h6">
-                            {formData
-                              .map(({ price, quantity }) => price * quantity)
-                              .reduce((sum, i) => sum + i, 0)
-                              .toLocaleString() || 0}
+                            {(formData &&
+                              formData
+                                .map(
+                                  ({ product_price, product_amount }) =>
+                                    product_price * product_amount
+                                )
+                                .reduce((sum, i) => sum + i, 0)
+                                .toLocaleString()) ||
+                              0}
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -292,7 +343,7 @@ export default function InputAdd(props) {
               </Grid>
               <Grid item>
                 <Button variant="contained" color="primary" onClick={onSubmit}>
-                  Add
+                  Update
                 </Button>
               </Grid>
             </Grid>

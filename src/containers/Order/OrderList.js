@@ -29,8 +29,6 @@ import SearchIcon from "@material-ui/icons/Search";
 import Chip from "@material-ui/core/Chip";
 import EditIcon from "@material-ui/icons/Edit";
 import Card from "@material-ui/core/Card";
-import CardMedia from "@material-ui/core/CardMedia";
-import CardActionArea from "@material-ui/core/CardActionArea";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
 

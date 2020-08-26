@@ -29,7 +29,6 @@ import SearchIcon from "@material-ui/icons/Search";
 import Card from "@material-ui/core/Card";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
-import Skeleton from "@material-ui/lab/Skeleton";
 
 //Components
 import AdminLayout from "../../components/Layout";

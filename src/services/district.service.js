@@ -13,15 +13,21 @@ export const districtService = {
 async function getAll(url = null) {
   const params = url === null ? `/api/districts/` : `/api/districts/` + url;
 
-  return await axios.get(params).then(handleResponse);
+  return await axios.get(params).then(handleResponse).catch(handleError);
 }
 
 async function getAllNonPagination() {
-  return await axios.get(`/api/allCategories/`).then(handleResponse);
+  return await axios
+    .get(`/api/allCategories/`)
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function getById(id) {
-  return await axios.get(`/api/districts/${id}`).then(handleResponse);
+  return await axios
+    .get(`/api/districts/${id}`)
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function add(district) {
@@ -35,7 +41,8 @@ async function add(district) {
 
   return await axios
     .post("/api/districts/", body, requestConfig)
-    .then(handleResponse);
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function update(id, district) {
@@ -49,7 +56,8 @@ async function update(id, district) {
 
   return await axios
     .put(`/api/districts/${id}/`, body, requestConfig)
-    .then(handleResponse);
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript
@@ -59,24 +67,30 @@ async function _delete(ids) {
   const promises = await ids.map((id) => {
     return axios.delete(`/api/districts/${id}`, requestConfig);
   });
-  return Promise.all(promises).then(handleResponse);
+  return Promise.all(promises).then(handleResponse).catch(handleError);
 }
 
 function handleResponse(response) {
   let data = response.data;
 
-  if (response.status > 400) {
-    const error = (data && data.message) || response.statusText;
+  return data;
+}
+
+function handleError(response) {
+  if (response.response.status === 500) {
+    return Promise.reject("Server Error");
+  }
+  if (response.response.status > 400) {
+    const error = response.data.data;
 
     if (error.response && error.response.data) {
       let errorkey = Object.keys(error.response.data)[0];
 
       let errorValue = error.response.data[errorkey][0];
 
-      return errorkey.toUpperCase() + ": " + errorValue;
+      return Promise.reject(errorkey.toUpperCase() + ": " + errorValue);
     } else {
-      return error.toString();
+      return Promise.reject(error.toString());
     }
   }
-  return data;
 }

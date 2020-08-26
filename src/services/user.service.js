@@ -141,14 +141,21 @@ function handleResponse(response) {
   return data;
 }
 
-function handleError(error) {
-  if (error.response && error.response.data) {
-    let errorkey = Object.keys(error.response.data)[0];
+function handleError(response) {
+  if (response.response.status === 500) {
+    return Promise.reject("Server Error");
+  }
+  if (response.response.status > 400) {
+    const error = response.data.data;
 
-    let errorValue = error.response.data[errorkey];
+    if (error.response && error.response.data) {
+      let errorkey = Object.keys(error.response.data)[0];
 
-    return Promise.reject(errorkey.toUpperCase() + ": " + errorValue);
-  } else {
-    return Promise.reject(error.response.data.error.message);
+      let errorValue = error.response.data[errorkey][0];
+
+      return Promise.reject(errorkey.toUpperCase() + ": " + errorValue);
+    } else {
+      return Promise.reject(error.toString());
+    }
   }
 }

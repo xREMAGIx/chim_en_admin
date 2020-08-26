@@ -19,15 +19,7 @@ function getAll(url) {
         dispatch(success(orders));
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -49,15 +41,7 @@ function getAllNonPagination() {
     await orderService.getAllNonPagination().then(
       (orders) => dispatch(success(orders)),
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -104,15 +88,7 @@ function add(order, image) {
         history.replace({ pathname: "/orders", state: 201 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -137,15 +113,7 @@ function update(id, order) {
         history.push({ pathname: "/orders", state: 202 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -171,15 +139,7 @@ function _delete(id) {
         history.replace({ pathname: "/orders", state: 203 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };

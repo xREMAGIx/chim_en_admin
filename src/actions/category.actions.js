@@ -20,15 +20,7 @@ function getAll(url) {
         history.replace({ pathname: history.location.pathname, state: 200 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -50,15 +42,7 @@ function getAllNonPagination() {
     await categoryService.getAllNonPagination().then(
       (categories) => dispatch(success(categories)),
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };
@@ -156,15 +140,7 @@ function _delete(id) {
         history.replace({ pathname: "/categories", state: 203 });
       },
       (error) => {
-        if (error.response && error.response.data) {
-          let errorkey = Object.keys(error.response.data)[0];
-
-          let errorValue = error.response.data[errorkey][0];
-
-          dispatch(failure(errorkey.toUpperCase() + ": " + errorValue));
-        } else {
-          dispatch(failure(error.toString()));
-        }
+        dispatch(failure(error));
       }
     );
   };

@@ -29,6 +29,7 @@ import UserEdit from "./containers/User/UserEdit";
 //>>Input-Output
 import InputOuputList from "./containers/Input-Output/InputOutputList";
 import InputAdd from "./containers/Input-Output/InputAdd";
+import InputEdit from "./containers/Input-Output/InputEdit";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -123,6 +124,11 @@ const App = () => {
               exact
               path="/input-add"
               component={InputAdd}
+            ></AdminRoute>
+            <AdminRoute
+              exact
+              path="/input-edit/:id"
+              component={InputEdit}
             ></AdminRoute>
           </Switch>
         </Router>

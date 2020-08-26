@@ -1,7 +1,7 @@
 import { inputConstants } from "../constants";
 
 const initialState = {
-  loading: true,
+  loading: false,
   items: [],
   item: [],
   count: null,

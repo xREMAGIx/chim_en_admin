@@ -1,5 +1,5 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
+//import { makeStyles } from "@material-ui/core/styles";
 
 //UI Components
 import Typography from "@material-ui/core/Typography";
@@ -12,7 +12,7 @@ import AdminLayout from "../components/Layout";
 import { useDispatch, useSelector } from "react-redux";
 import { themeActions } from "../actions";
 
-const useStyles = makeStyles((theme) => ({}));
+//const useStyles = makeStyles((theme) => ({}));
 
 export default function Setting() {
   const dispatch = useDispatch();

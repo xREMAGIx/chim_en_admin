@@ -64,14 +64,7 @@ async function add(input, image) {
   //}
 }
 
-async function update(id, input, image, delImage) {
-  const imageData = new FormData();
-
-  for (let i = 0; i < image.length; i++)
-    imageData.append("images", image[i].img);
-
-  imageData.append("input", id);
-
+async function update(id, input) {
   const requestConfig = {
     headers: {
       "Content-Type": "application/json",
@@ -80,36 +73,9 @@ async function update(id, input, image, delImage) {
 
   const body = JSON.stringify(input);
 
-  if (delImage.length > 0) {
-    const imageRequestConfig = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        ids: delImage,
-      },
-    };
-    await axios.delete(`/api/warehouse/images`, imageRequestConfig);
-  }
-
-  if (imageData.get("images")) {
-    await axios
-      .put(`/api/warehouse/${id}/`, body, requestConfig)
-      .then(handleResponse);
-
-    const configFormData = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    };
-    return await axios
-      .post("/api/warehouse/images", imageData, configFormData)
-      .then(handleResponse);
-  } else {
-    return await axios
-      .put(`/api/warehouse/${id}/`, body, requestConfig)
-      .then(handleResponse);
-  }
+  return await axios
+    .put(`/api/warehouses/${id}/`, body, requestConfig)
+    .then(handleResponse);
 }
 
 // prefixed function name with underscore because delete is a reserved word in javascript

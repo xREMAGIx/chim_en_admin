@@ -28,12 +28,8 @@ import AddIcon from "@material-ui/icons/Add";
 import Hidden from "@material-ui/core/Hidden";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
-import Chip from "@material-ui/core/Chip";
 import EditIcon from "@material-ui/icons/Edit";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Card from "@material-ui/core/Card";
-import CardMedia from "@material-ui/core/CardMedia";
-import CardActionArea from "@material-ui/core/CardActionArea";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
 import CardContent from "@material-ui/core/CardContent";
 
@@ -43,7 +39,7 @@ import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions, categoryActions, inputActions } from "../../actions";
+import { inputActions } from "../../actions";
 
 const headCells = [
   {
@@ -52,17 +48,14 @@ const headCells = [
     disablePadding: false,
     label: "ID",
   },
-  { id: "sku", numeric: false, disablePadding: false, label: "SKU" },
-  { id: "name", numeric: false, disablePadding: false, label: "Name" },
-  { id: "price", numeric: true, disablePadding: false, label: "Price" },
+  { id: "provider", numeric: false, disablePadding: false, label: "Provider" },
+  { id: "total", numeric: true, disablePadding: false, label: "Total" },
   {
-    id: "categories",
-    numeric: false,
+    id: "created_at",
+    numeric: true,
     disablePadding: false,
-    label: "Categories",
+    label: "Created At",
   },
-  { id: "status", numeric: false, disablePadding: false, label: "Status" },
-  { id: "date", numeric: true, disablePadding: false, label: "Date" },
   { id: "action", numeric: true, disablePadding: false, label: "Action" },
 ];
 
@@ -222,7 +215,7 @@ const EnhancedTableToolbar = (props) => {
   //Handle Delete
   const { numSelected, idSelected } = props;
   const handleDelete = () => {
-    dispatch(productActions.delete(idSelected));
+    dispatch(inputActions.delete(idSelected));
     props.setSelected([]);
   };
 
@@ -403,8 +396,7 @@ export default function ProductList() {
 
   //Redux Hook
   const dispatch = useDispatch();
-  const products = useSelector((state) => state.products);
-  const categories = useSelector((state) => state.categories);
+  const inputs = useSelector((state) => state.inputs);
   const user = useSelector((state) => state.users.user);
 
   //Table Hooks
@@ -423,7 +415,7 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = products.items.map((n) => n.id);
+      const newSelecteds = inputs.items.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -463,7 +455,7 @@ export default function ProductList() {
 
   const emptyRows =
     rowsPerPage -
-      Math.min(rowsPerPage, products.items.length - page * rowsPerPage) || 0;
+      Math.min(rowsPerPage, inputs.items.length - page * rowsPerPage) || 0;
 
   //Main functions
   //*Permission access
@@ -500,26 +492,12 @@ export default function ProductList() {
       ? true
       : false;
 
-  //*Filter
-  const [statusFilter, setStatusFilter] = useState("");
-  //Chip function
-  const handleChipClick = (e) => {
-    dispatch(
-      productActions.getAll(
-        `?search=${search}&limit=${rowsPerPage}&offset=0&active=${e.currentTarget.id}`
-      )
-    );
-    setStatusFilter(e.currentTarget.id);
-  };
-
   //*Search
   const [search, setSearch] = useState("");
   //Handle Search
   const onSearch = () => {
     dispatch(
-      productActions.getAll(
-        `?search=${search}&limit=${rowsPerPage}&offset=0&active=${statusFilter}`
-      )
+      inputActions.getAll(`?search=${search}&limit=${rowsPerPage}&offset=0`)
     );
     setPage(0);
   };
@@ -527,12 +505,6 @@ export default function ProductList() {
   //*load product (with Pagination) + load category
   useEffect(() => {
     if (viewPermission) {
-      dispatch(
-        productActions.getAll(
-          `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
-        )
-      );
-      dispatch(categoryActions.getAllNonPagination());
       dispatch(
         inputActions.getAll(
           `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
@@ -551,18 +523,19 @@ export default function ProductList() {
               Dashboard
             </Link>
 
-            <Typography color="textPrimary">Product List</Typography>
+            <Typography color="textPrimary">Input List</Typography>
           </Breadcrumbs>
 
           {/* Loading, Success & Error handling */}
-          {<CustomAlert loading={products.loading} />}
-          {products.error && (
+
+          {<CustomAlert loading={inputs.loading} />}
+          {inputs.error && (
             <CustomAlert
               openError={true}
-              messageError={products.error}
+              messageError={inputs.error}
             ></CustomAlert>
           )}
-          {products.success && <CustomAlert openSuccess={true}></CustomAlert>}
+          {inputs.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
           {/* Product table */}
           <Paper className={classes.paper}>
@@ -575,38 +548,7 @@ export default function ProductList() {
               addPermission={addPermission}
               deletePermission={deletePermission}
             />
-            {/* Filter Chip */}
-            <Grid
-              style={{ marginLeft: 8, marginBottom: 16 }}
-              container
-              spacing={2}
-            >
-              <Grid item>
-                <Chip
-                  color={statusFilter === "" ? "secondary" : "default"}
-                  id=""
-                  label="All"
-                  onClick={(e) => handleChipClick(e)}
-                />
-              </Grid>
 
-              <Grid item>
-                <Chip
-                  color={statusFilter === "true" ? "secondary" : "default"}
-                  id="true"
-                  label="Available"
-                  onClick={(e) => handleChipClick(e)}
-                />
-              </Grid>
-              <Grid item>
-                <Chip
-                  color={statusFilter === "false" ? "secondary" : "default"}
-                  id="false"
-                  label="Unavailable"
-                  onClick={(e) => handleChipClick(e)}
-                />
-              </Grid>
-            </Grid>
             {/* Table Desktop version */}
             <Hidden smDown>
               <TableContainer className={classes.tableContainer}>
@@ -624,12 +566,12 @@ export default function ProductList() {
                     orderBy={orderBy}
                     onSelectAllClick={handleSelectAllClick}
                     onRequestSort={handleRequestSort}
-                    rowCount={products.items.length}
+                    rowCount={inputs.items.length}
                   />
                   <TableBody>
-                    {products.items.length > 0 &&
+                    {inputs.items.length > 0 &&
                       stableSort(
-                        products.items,
+                        inputs.items,
                         getComparator(order, orderBy)
                       ).map((row, index) => {
                         const isItemSelected = isSelected(row.id);
@@ -652,19 +594,6 @@ export default function ProductList() {
                               />
                             </TableCell>
 
-                            <TableCell>
-                              <img
-                                height={48}
-                                width={48}
-                                src={
-                                  row.images.length > 0
-                                    ? row.images[0].image
-                                    : null
-                                }
-                                alt="No data"
-                              ></img>
-                            </TableCell>
-
                             <TableCell>{row.id}</TableCell>
                             <TableCell
                               style={{
@@ -673,49 +602,33 @@ export default function ProductList() {
                                 wordWrap: "break-word",
                               }}
                               scope="row"
-                              padding="none"
                             >
                               <Grid item xs zeroMinWidth>
                                 <Tooltip
                                   title={
                                     <Typography variant="body2">
-                                      {row.title}
+                                      {row.provider}
                                     </Typography>
                                   }
                                 >
                                   <Typography variant="body2" noWrap>
-                                    {row.title}
+                                    {row.provider}
                                   </Typography>
                                 </Tooltip>
                               </Grid>
                             </TableCell>
+
                             <TableCell align="right">
-                              {row.price.toLocaleString()}
+                              {row.product_details
+                                .map(
+                                  ({ product_price, product_amount }) =>
+                                    product_price * product_amount
+                                )
+                                .reduce((sum, i) => sum + i, 0)
+                                .toLocaleString() || 0}
                             </TableCell>
-                            <TableCell>
-                              {(
-                                categories.items.find(
-                                  (element) => element.id === row.category
-                                ) || {}
-                              ).title || row.category}
-                            </TableCell>
-                            <TableCell>
-                              <Typography
-                                display="inline"
-                                variant="body2"
-                                className={clsx({
-                                  [classes.status]: true,
-                                  [classes.available]: row.active,
-                                  [classes.unavailable]: !row.active,
-                                })}
-                              >
-                                {row.active ? "Available" : "Unavailable"}
-                              </Typography>
-                            </TableCell>
+
                             <TableCell align="right">
-                              <Typography variant="body2" display="block">
-                                {dateFormat(row.updated)}
-                              </Typography>
                               <Typography
                                 color="textSecondary"
                                 variant="body2"
@@ -731,20 +644,10 @@ export default function ProductList() {
                                     <IconButton
                                       component={Link}
                                       disabled={!updatePermission}
-                                      to={`/products-edit/${row.id}`}
+                                      to={`/input-edit/${row.id}`}
                                       aria-label="edit"
                                     >
                                       <EditIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                </Grid>
-                                <Grid item>
-                                  <Tooltip
-                                    title="Duplicate"
-                                    aria-label="duplicate"
-                                  >
-                                    <IconButton aria-label="duplicate">
-                                      <FileCopyIcon />
                                     </IconButton>
                                   </Tooltip>
                                 </Grid>
@@ -764,32 +667,27 @@ export default function ProductList() {
             </Hidden>
             {/* Table Mobile version */}
             <Hidden mdUp>
-              {products.items.map((row, index) => (
+              {inputs.items.map((row, index) => (
                 <Card
                   variant="outlined"
                   className={classes.cardRoot}
                   key={index}
                 >
                   <Grid container>
-                    <Grid item xs={3} container alignItems="center">
-                      <CardActionArea>
-                        <CardMedia
-                          //className={classes.cardMedia}
-                          component="img"
-                          src={
-                            (row.images.length > 0 && row.images[0].image) || ""
-                          }
-                          alt={"No data"}
-                        />
-                      </CardActionArea>
-                    </Grid>
-                    <Grid item xs={7}>
+                    <Grid item xs={10}>
                       <CardContent className={classes.cardContent}>
                         <Typography gutterBottom variant="h6" component="h2">
-                          {row.title}
+                          {row.provider}
                         </Typography>
                         <Typography variant="body1" component="p" gutterBottom>
-                          Price: {row.price}
+                          Total:{" "}
+                          {row.product_details
+                            .map(
+                              ({ product_price, product_amount }) =>
+                                product_price * product_amount
+                            )
+                            .reduce((sum, i) => sum + i, 0)
+                            .toLocaleString() || 0}
                         </Typography>
                         <Typography
                           variant="body2"
@@ -797,23 +695,7 @@ export default function ProductList() {
                           component="p"
                           style={{ marginBottom: 10 }}
                         >
-                          Categories:{" "}
-                          {(
-                            categories.items.find(
-                              (element) => element.id === row.category
-                            ) || {}
-                          ).title || row.category}
-                        </Typography>
-                        <Typography
-                          display="inline"
-                          variant="body2"
-                          className={clsx({
-                            [classes.status]: true,
-                            [classes.available]: row.active,
-                            [classes.unavailable]: !row.active,
-                          })}
-                        >
-                          {row.active ? "Available" : "Unavailable"}
+                          Create At: {new Date(row.created_at).toLocaleString()}
                         </Typography>
                       </CardContent>
                     </Grid>
@@ -824,7 +706,12 @@ export default function ProductList() {
                       justify="flex-end"
                       alignItems="flex-start"
                     >
-                      <IconButton aria-label="edit">
+                      <IconButton
+                        component={Link}
+                        disabled={!updatePermission}
+                        to={`/input-edit/${row.id}`}
+                        aria-label="edit"
+                      >
                         <EditIcon />
                       </IconButton>
                     </Grid>
@@ -836,7 +723,7 @@ export default function ProductList() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={products.count || 0}
+              count={inputs.count || 0}
               rowsPerPage={rowsPerPage}
               labelRowsPerPage={"Rows:"}
               page={page}

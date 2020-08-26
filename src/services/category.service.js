@@ -13,15 +13,21 @@ export const categoryService = {
 async function getAll(url = null) {
   const params = url === null ? `/api/categories/` : `/api/categories/` + url;
 
-  return await axios.get(params).then(handleResponse);
+  return await axios.get(params).then(handleResponse).catch(handleError);
 }
 
 async function getAllNonPagination() {
-  return await axios.get(`/api/categories/`).then(handleResponse);
+  return await axios
+    .get(`/api/categories/`)
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function getById(id) {
-  return await axios.get(`/api/categories/${id}`).then(handleResponse);
+  return await axios
+    .get(`/api/categories/${id}`)
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function add(category, image) {
@@ -53,7 +59,7 @@ async function add(category, image) {
   //         imageData,
   //         configFormData
   //       )
-  //       .then(handleResponse);
+  //       .then(handleResponse).catch(handleError);
   //   } catch (error) {
   //     console.log(error);
   //   }
@@ -61,7 +67,8 @@ async function add(category, image) {
   console.log(body);
   return await axios
     .post("/api/categories/", body, requestConfig)
-    .then(handleResponse);
+    .then(handleResponse)
+    .catch(handleError);
   //}
 }
 
@@ -102,7 +109,8 @@ async function update(id, category, image, delImage) {
     try {
       await axios
         .put(`/api/categories/${id}/`, body, requestConfig)
-        .then(handleResponse);
+        .then(handleResponse)
+        .catch(handleError);
     } catch (error) {
       console.log(error);
     }
@@ -115,14 +123,16 @@ async function update(id, category, image, delImage) {
     try {
       return await axios
         .post("/api/categories/images", imageData, configFormData)
-        .then(handleResponse);
+        .then(handleResponse)
+        .catch(handleError);
     } catch (error) {
       console.log(error);
     }
   } else {
     return await axios
       .put(`/api/categories/${id}/`, body, requestConfig)
-      .then(handleResponse);
+      .then(handleResponse)
+      .catch(handleError);
   }
 }
 
@@ -135,25 +145,30 @@ async function _delete(ids) {
   const promises = await ids.map((id) => {
     return axios.delete(`/api/categories/${id}`, requestConfig);
   });
-  return Promise.all(promises).then(handleResponse);
+  return Promise.all(promises).then(handleResponse).catch(handleError);
 }
 
 function handleResponse(response) {
-  let data;
-  data = response.data;
+  let data = response.data;
 
-  if (response.status > 400) {
-    const error = (data && data.message) || response.statusText;
+  return data;
+}
+
+function handleError(response) {
+  if (response.response.status === 500) {
+    return Promise.reject("Server Error");
+  }
+  if (response.response.status > 400) {
+    const error = response.data.data;
 
     if (error.response && error.response.data) {
       let errorkey = Object.keys(error.response.data)[0];
 
       let errorValue = error.response.data[errorkey][0];
 
-      return errorkey.toUpperCase() + ": " + errorValue;
+      return Promise.reject(errorkey.toUpperCase() + ": " + errorValue);
     } else {
-      return error.toString();
+      return Promise.reject(error.toString());
     }
   }
-  return data;
 }

@@ -63,9 +63,10 @@ export default function CustomAlert(props) {
   };
 
   //*Hanlde Authority
-  const [openErrorAuthority, setOpenErrorAuthority] = React.useState(
-    props.openErrorAuthority || false
-  );
+  // const [openErrorAuthority, setOpenErrorAuthority] = React.useState(
+  //   props.openErrorAuthority || false
+  // );
+  const openErrorAuthority = props.openErrorAuthority || false;
 
   return (
     <div className={classes.root}>

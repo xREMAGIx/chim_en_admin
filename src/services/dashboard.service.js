@@ -8,25 +8,30 @@ export const dashboardService = {
 async function getAll(url = null) {
   const params = url === null ? `/api/dashboard` : `/api/dashboard/` + url;
 
-  return await axios.get(params).then(handleResponse);
+  return await axios.get(params).then(handleResponse).catch(handleError);
 }
 
 function handleResponse(response) {
-  let data;
-  data = response.data;
+  let data = response.data;
 
-  if (response.status > 400) {
-    const error = (data && data.message) || response.statusText;
+  return data;
+}
+
+function handleError(response) {
+  if (response.response.status === 500) {
+    return Promise.reject("Server Error");
+  }
+  if (response.response.status > 400) {
+    const error = response.data.data;
 
     if (error.response && error.response.data) {
       let errorkey = Object.keys(error.response.data)[0];
 
       let errorValue = error.response.data[errorkey][0];
 
-      return errorkey.toUpperCase() + ": " + errorValue;
+      return Promise.reject(errorkey.toUpperCase() + ": " + errorValue);
     } else {
-      return error.toString();
+      return Promise.reject(error.toString());
     }
   }
-  return data;
 }
