@@ -11,17 +11,17 @@ export const inputService = {
 };
 
 async function getAll(url = null) {
-  const params = url === null ? `/api/inputs/` : `/api/inputs/` + url;
+  const params = url === null ? `/api/warehouses/` : `/api/warehouses/` + url;
 
   return await axios.get(params).then(handleResponse);
 }
 
 async function getAllNonPagination() {
-  return await axios.get(`/api/inputs/`).then(handleResponse);
+  return await axios.get(`/api/warehouses/`).then(handleResponse);
 }
 
 async function getById(id) {
-  return await axios.get(`/api/inputs/${id}`).then(handleResponse);
+  return await axios.get(`/api/warehouses/${id}`).then(handleResponse);
 }
 
 async function add(input, image) {
@@ -59,7 +59,7 @@ async function add(input, image) {
   //   }
   // } else {
   return await axios
-    .post("/api/inputs/", body, requestConfig)
+    .post("/api/warehouses/", body, requestConfig)
     .then(handleResponse);
   //}
 }
@@ -89,12 +89,12 @@ async function update(id, input, image, delImage) {
         ids: delImage,
       },
     };
-    await axios.delete(`/api/inputs/images`, imageRequestConfig);
+    await axios.delete(`/api/warehouse/images`, imageRequestConfig);
   }
 
   if (imageData.get("images")) {
     await axios
-      .put(`/api/inputs/${id}/`, body, requestConfig)
+      .put(`/api/warehouse/${id}/`, body, requestConfig)
       .then(handleResponse);
 
     const configFormData = {
@@ -103,11 +103,11 @@ async function update(id, input, image, delImage) {
       },
     };
     return await axios
-      .post("/api/inputs/images", imageData, configFormData)
+      .post("/api/warehouse/images", imageData, configFormData)
       .then(handleResponse);
   } else {
     return await axios
-      .put(`/api/inputs/${id}/`, body, requestConfig)
+      .put(`/api/warehouse/${id}/`, body, requestConfig)
       .then(handleResponse);
   }
 }
@@ -119,7 +119,7 @@ async function _delete(ids) {
   };
 
   const promises = await ids.map((id) => {
-    return axios.delete(`/api/inputs/${id}`, requestConfig);
+    return axios.delete(`/api/warehouses/${id}`, requestConfig);
   });
   return Promise.all(promises).then(handleResponse);
 }

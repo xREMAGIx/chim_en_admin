@@ -29,7 +29,7 @@ import AdminLayout from "../../components/Layout";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { orderActions, productActions, inputActions } from "../../actions";
+import { orderActions, productActions } from "../../actions";
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -98,32 +98,25 @@ export default function InputAdd(props) {
   //Main funtion
   const [formData, setFormData] = useState([]);
   const [productSelected, setProductSelected] = useState();
-  const [input, setInput] = useState();
 
   const onSubmit = () => {
-    dispatch(
-      inputActions.add({
-        ...input,
-        product_details: formData,
-      })
-    );
+    dispatch(orderActions.update(props.match.params.id, formData));
   };
 
   const keyPressed = (e) => {
-    if (e.key === "Enter" && productSelected !== undefined) onAddList(e);
+    if (e.key === "Enter") onAddList(e);
   };
 
   const onAddList = (e) => {
-    if (formData.find((el) => el.product_id === productSelected.product_id))
+    if (formData.find((el) => el.id === productSelected.id))
       setFormData(
         formData.map((el) =>
-          el.product_id === productSelected.product_id
-            ? { ...productSelected, product_amount: el.product_amount + 1 }
+          el.id === productSelected.id
+            ? { ...productSelected, quantity: el.quantity + 1 }
             : el
         )
       );
-    else
-      setFormData([...formData, { ...productSelected, product_amount: 1 * 1 }]);
+    else setFormData([...formData, { ...productSelected, quantity: 1 * 1 }]);
   };
 
   return (
@@ -154,31 +147,13 @@ export default function InputAdd(props) {
             <Collapse in={openDetailCollapse} timeout="auto" unmountOnExit>
               <Paper className={classes.padding} elevation={4}>
                 <Grid container spacing={3} alignItems="center">
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      id="outlined-manufacturer"
-                      label="Manufacturer"
-                      variant="outlined"
-                      onChange={(e) =>
-                        setInput({ ...input, provider: e.target.value })
-                      }
-                    />
-                  </Grid>
                   <Grid item xs={12} sm={9}>
                     <Autocomplete
                       id="combo-box-demo"
                       loading={products.loading}
                       options={products.items}
                       getOptionLabel={(option) => option.title}
-                      onChange={(e, newValue) =>
-                        setProductSelected({
-                          product_id: newValue.id,
-                          product_name: newValue.title,
-                          product_price: newValue.price,
-                          product_promotion: newValue.promotion,
-                        })
-                      }
+                      onChange={(e, newValue) => setProductSelected(newValue)}
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -222,9 +197,19 @@ export default function InputAdd(props) {
                       {formData.length > 0 &&
                         formData.map((row, index) => (
                           <TableRow key={index}>
-                            <TableCell>{row.product_name}</TableCell>
+                            <TableCell>
+                              {row.title}
+                              {
+                                <Typography
+                                  variant="body2"
+                                  color="textSecondary"
+                                >
+                                  sku: {row.sku || ""}
+                                </Typography>
+                              }
+                            </TableCell>
                             <TableCell align="right">
-                              {row.product_price.toLocaleString() || 0}
+                              {row.price.toLocaleString() || 0}
                             </TableCell>
                             <TableCell align="right">
                               <TextField
@@ -232,7 +217,7 @@ export default function InputAdd(props) {
                                 id="standard-number"
                                 size="small"
                                 type="number"
-                                value={row.product_amount || 0}
+                                value={row.quantity || 0}
                                 InputLabelProps={{
                                   shrink: true,
                                 }}
@@ -242,7 +227,7 @@ export default function InputAdd(props) {
                                       el.id === row.id
                                         ? {
                                             ...row,
-                                            product_amount: e.target.value,
+                                            quantity: e.target.value,
                                           }
                                         : el
                                     )
@@ -251,9 +236,7 @@ export default function InputAdd(props) {
                               />
                             </TableCell>
                             <TableCell align="right">
-                              {(
-                                row.product_price * row.product_amount
-                              ).toLocaleString() || 0}
+                              {(row.price * row.quantity).toLocaleString() || 0}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -267,10 +250,7 @@ export default function InputAdd(props) {
                         <TableCell align="right">
                           <Typography variant="h6">
                             {formData
-                              .map(
-                                ({ product_price, product_amount }) =>
-                                  product_price * product_amount
-                              )
+                              .map(({ price, quantity }) => price * quantity)
                               .reduce((sum, i) => sum + i, 0)
                               .toLocaleString() || 0}
                           </Typography>

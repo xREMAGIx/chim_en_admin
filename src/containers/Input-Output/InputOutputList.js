@@ -43,14 +43,14 @@ import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
-import { productActions, categoryActions } from "../../actions";
+import { productActions, categoryActions, inputActions } from "../../actions";
 
 const headCells = [
   {
-    id: "image",
+    id: "id",
     numeric: false,
     disablePadding: false,
-    label: "Image",
+    label: "ID",
   },
   { id: "sku", numeric: false, disablePadding: false, label: "SKU" },
   { id: "name", numeric: false, disablePadding: false, label: "Name" },
@@ -533,6 +533,11 @@ export default function ProductList() {
         )
       );
       dispatch(categoryActions.getAllNonPagination());
+      dispatch(
+        inputActions.getAll(
+          `?limit=${rowsPerPage}&offset=${page * rowsPerPage}`
+        )
+      );
     }
   }, [viewPermission, dispatch, rowsPerPage, page]);
 
