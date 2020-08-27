@@ -148,6 +148,7 @@ export default function ProductAdd() {
     sku: "",
     title: "",
     price: 0,
+    available: 0,
     description: "",
     active: true,
     slug: "",
@@ -155,7 +156,7 @@ export default function ProductAdd() {
     images: [],
   });
 
-  const { sku, title, price, description, slug } = formData;
+  const { sku, title, price, available, description, slug } = formData;
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -281,6 +282,20 @@ export default function ProductAdd() {
                         variant="outlined"
                         value={price}
                         name="price"
+                        onChange={(e) => onChange(e)}
+                        onKeyPress={(e) => keyPressed(e)}
+                      />
+                    </Grid>
+                    {/* stock */}
+                    <Grid item xs={12} sm={12} md={9}>
+                      <TextField
+                        id="stock-text"
+                        type="number"
+                        fullWidth
+                        label="Stock"
+                        variant="outlined"
+                        value={available}
+                        name="available"
                         onChange={(e) => onChange(e)}
                         onKeyPress={(e) => keyPressed(e)}
                       />

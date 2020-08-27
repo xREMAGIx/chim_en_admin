@@ -23,8 +23,8 @@ import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
 import MainListItems from "./ListItemDrawer";
 
 //Redux
-import { useDispatch } from "react-redux";
-import { userActions } from "../actions";
+import { useDispatch, useSelector } from "react-redux";
+import { userActions, menuActions } from "../actions";
 
 const drawerWidth = 240;
 
@@ -100,12 +100,12 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CustomDrawer(props) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = React.useState(null);
   const openProfile = Boolean(profileAnchorEl);
 
   // redux
   const dispatch = useDispatch();
+  const menu = useSelector((state) => state.menu);
 
   const handleMenu = (event) => {
     setProfileAnchorEl(event.currentTarget);
@@ -116,10 +116,10 @@ export default function CustomDrawer(props) {
   };
 
   const handleDrawerOpen = () => {
-    setOpen(true);
+    dispatch(menuActions.changeMenu(true));
   };
   const handleDrawerClose = () => {
-    setOpen(false);
+    dispatch(menuActions.changeMenu(false));
   };
 
   const logout = () => {
@@ -131,7 +131,7 @@ export default function CustomDrawer(props) {
       <CssBaseline />
       <AppBar
         position="absolute"
-        className={clsx(classes.appBar, open && classes.appBarShift)}
+        className={clsx(classes.appBar, menu.expand && classes.appBarShift)}
       >
         <Toolbar className={classes.toolbar}>
           {/* <Hidden smDown> */}
@@ -142,7 +142,7 @@ export default function CustomDrawer(props) {
             onClick={handleDrawerOpen}
             className={clsx(
               classes.menuButton,
-              open && classes.menuButtonHidden
+              menu.expand && classes.menuButtonHidden
             )}
           >
             <MenuIcon />
@@ -194,9 +194,12 @@ export default function CustomDrawer(props) {
         <Drawer
           variant="permanent"
           classes={{
-            paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
+            paper: clsx(
+              classes.drawerPaper,
+              !menu.expand && classes.drawerPaperClose
+            ),
           }}
-          open={open}
+          open={menu.expand}
         >
           <div className={classes.toolbarIcon}>
             <IconButton onClick={handleDrawerClose}>
@@ -210,10 +213,13 @@ export default function CustomDrawer(props) {
       <Hidden smUp>
         <SwipeableDrawer
           classes={{
-            paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
+            paper: clsx(
+              classes.drawerPaper,
+              !menu.expand && classes.drawerPaperClose
+            ),
           }}
           disableBackdropTransition
-          open={open}
+          open={menu.expand}
           onClose={handleDrawerClose}
           onOpen={handleDrawerOpen}
         >

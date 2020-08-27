@@ -73,6 +73,7 @@ const statusOption = [
   { title: "Pending", value: "Pending" },
   { title: "Processing", value: "Processing" },
   { title: "Complete", value: "Complete" },
+  { title: "Cancel", value: "Cancel" },
 ];
 
 export default function OrderEdit(props) {

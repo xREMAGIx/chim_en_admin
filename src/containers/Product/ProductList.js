@@ -30,7 +30,7 @@ import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
 import Chip from "@material-ui/core/Chip";
 import EditIcon from "@material-ui/icons/Edit";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
+//import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Card from "@material-ui/core/Card";
 import CardMedia from "@material-ui/core/CardMedia";
 import CardActionArea from "@material-ui/core/CardActionArea";
@@ -54,7 +54,6 @@ const headCells = [
   },
   { id: "sku", numeric: false, disablePadding: false, label: "SKU" },
   { id: "name", numeric: false, disablePadding: false, label: "Name" },
-  { id: "price", numeric: true, disablePadding: false, label: "Price" },
   {
     id: "categories",
     numeric: false,
@@ -62,6 +61,8 @@ const headCells = [
     label: "Categories",
   },
   { id: "status", numeric: false, disablePadding: false, label: "Status" },
+  { id: "price", numeric: true, disablePadding: false, label: "Price" },
+  { id: "stock", numeric: true, disablePadding: false, label: "Stock" },
   { id: "date", numeric: true, disablePadding: false, label: "Date" },
   { id: "action", numeric: true, disablePadding: false, label: "Action" },
 ];
@@ -684,9 +685,6 @@ export default function ProductList() {
                                 </Tooltip>
                               </Grid>
                             </TableCell>
-                            <TableCell align="right">
-                              {row.price.toLocaleString()}
-                            </TableCell>
                             <TableCell>
                               {(
                                 categories.items.find(
@@ -706,6 +704,14 @@ export default function ProductList() {
                               >
                                 {row.active ? "Available" : "Unavailable"}
                               </Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              {(row.price && row.price.toLocaleString()) || 0}
+                            </TableCell>
+                            <TableCell align="right">
+                              {(row.available &&
+                                row.available.toLocaleString()) ||
+                                0}
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" display="block">
@@ -733,7 +739,7 @@ export default function ProductList() {
                                     </IconButton>
                                   </Tooltip>
                                 </Grid>
-                                <Grid item>
+                                {/* <Grid item>
                                   <Tooltip
                                     title="Duplicate"
                                     aria-label="duplicate"
@@ -742,7 +748,7 @@ export default function ProductList() {
                                       <FileCopyIcon />
                                     </IconButton>
                                   </Tooltip>
-                                </Grid>
+                                </Grid> */}
                               </Grid>
                             </TableCell>
                           </TableRow>

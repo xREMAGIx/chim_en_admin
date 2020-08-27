@@ -182,12 +182,21 @@ export default function ProductEdit(props) {
     sku: "",
     title: "",
     price: 0,
+    available: 0,
     description: "",
     active: true,
     slug: "",
   });
 
-  const { sku, title, price, description, full_description, slug } = formData;
+  const {
+    sku,
+    title,
+    price,
+    available,
+    description,
+    full_description,
+    slug,
+  } = formData;
 
   //>>Put item to form data
   useEffect(() => {
@@ -416,6 +425,20 @@ export default function ProductEdit(props) {
                       variant="outlined"
                       value={price || ""}
                       name="price"
+                      onChange={(e) => onChange(e)}
+                      onKeyPress={(e) => keyPressed(e)}
+                    />
+                  </Grid>
+                  {/* stock */}
+                  <Grid item xs={12} sm={12} md={9}>
+                    <TextField
+                      id="stock-text"
+                      type="number"
+                      fullWidth
+                      label="Stock"
+                      variant="outlined"
+                      value={available || 0}
+                      name="available"
                       onChange={(e) => onChange(e)}
                       onKeyPress={(e) => keyPressed(e)}
                     />

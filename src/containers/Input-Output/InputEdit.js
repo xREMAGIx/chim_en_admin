@@ -28,6 +28,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 
 //Custom Components
 import AdminLayout from "../../components/Layout";
+import CustomAlert from "../../components/Alert";
 
 //Redux
 import { useDispatch, useSelector } from "react-redux";
@@ -158,6 +159,17 @@ export default function InputEdit(props) {
             Input Edit #{inputs.item.id}
           </Typography>
         </Breadcrumbs>
+
+        {/* Loading, Success & Error handling */}
+
+        {<CustomAlert loading={inputs.loading} />}
+        {inputs.error && (
+          <CustomAlert
+            openError={true}
+            messageError={inputs.error}
+          ></CustomAlert>
+        )}
+        {inputs.success && <CustomAlert openSuccess={true}></CustomAlert>}
 
         {/* Main */}
         <Grid container spacing={3}>

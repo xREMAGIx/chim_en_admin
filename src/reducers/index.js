@@ -11,6 +11,7 @@ import { inputs } from "./input.reducers";
 
 //Theme
 import { themeConstants } from "../constants";
+import { menuConstants } from "../constants";
 
 export function theme(state = { dark: false }, action) {
   switch (action.type) {
@@ -18,6 +19,18 @@ export function theme(state = { dark: false }, action) {
     case themeConstants.CHANGE_THEME:
       return {
         dark: !action.toggle,
+      };
+    default:
+      return state;
+  }
+}
+
+export function menu(state = { expand: false }, action) {
+  switch (action.type) {
+    // Get Reducers
+    case menuConstants.CHANGE_MENU:
+      return {
+        expand: action.toggle,
       };
     default:
       return state;
@@ -35,6 +48,7 @@ const rootReducer = combineReducers({
   permissions,
   dashboard,
   inputs,
+  menu,
 });
 
 export default rootReducer;

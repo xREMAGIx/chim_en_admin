@@ -26,8 +26,8 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import FilterListIcon from "@material-ui/icons/FilterList";
 import AddIcon from "@material-ui/icons/Add";
 import Hidden from "@material-ui/core/Hidden";
-import InputBase from "@material-ui/core/InputBase";
-import SearchIcon from "@material-ui/icons/Search";
+// import InputBase from "@material-ui/core/InputBase";
+// import SearchIcon from "@material-ui/icons/Search";
 import EditIcon from "@material-ui/icons/Edit";
 import Card from "@material-ui/core/Card";
 import Breadcrumbs from "@material-ui/core/Breadcrumbs";
@@ -219,9 +219,9 @@ const EnhancedTableToolbar = (props) => {
     props.setSelected([]);
   };
 
-  const keyEnter = (e) => {
-    if (e.key === "Enter") props.onSearch(e);
-  };
+  // const keyEnter = (e) => {
+  //   if (e.key === "Enter") props.onSearch(e);
+  // };
 
   return (
     <Toolbar
@@ -263,7 +263,7 @@ const EnhancedTableToolbar = (props) => {
         </Tooltip>
       ) : (
         <Grid container alignItems="center" justify="flex-end" spacing={1}>
-          <Grid item>
+          {/* <Grid item>
             <div className={classes.search}>
               <div className={classes.searchIcon}>
                 <SearchIcon />
@@ -279,7 +279,7 @@ const EnhancedTableToolbar = (props) => {
                 onKeyPress={keyEnter}
               />
             </div>
-          </Grid>
+          </Grid> */}
           <Grid item>
             <Hidden xsDown>
               <Button
@@ -463,7 +463,7 @@ export default function ProductList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "view_product"
+        (permission) => permission.codename === "view_warehouse"
       ))
       ? true
       : false;
@@ -471,7 +471,7 @@ export default function ProductList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "add_product"
+        (permission) => permission.codename === "add_warehouse"
       ))
       ? true
       : false;
@@ -479,7 +479,7 @@ export default function ProductList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "change_product"
+        (permission) => permission.codename === "change_warehouse"
       ))
       ? true
       : false;
@@ -487,7 +487,7 @@ export default function ProductList() {
     user &&
     (user.is_superuser ||
       user.user_permissions.find(
-        (permission) => permission.codename === "delete_product"
+        (permission) => permission.codename === "delete_warehouse"
       ))
       ? true
       : false;
