@@ -25,6 +25,7 @@ function getMe() {
       },
       (error) => {
         dispatch(failure(error));
+        dispatch(userActions.logout());
       }
     );
   };

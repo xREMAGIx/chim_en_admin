@@ -25,7 +25,8 @@ async function login(user) {
 
   return await axios
     .post(`/api/auth/login`, body, requestConfig)
-    .then(handleResponse);
+    .then(handleResponse)
+    .catch(handleError);
 }
 
 async function getMe() {
@@ -133,11 +134,6 @@ function handleResponse(response) {
   let data;
   data = response.data;
 
-  if (response.status === 404) {
-    const error = (response && response.message) || response.statusText;
-    return Promise.reject(error);
-  }
-
   return data;
 }
 
@@ -145,8 +141,8 @@ function handleError(response) {
   if (response.response.status === 500) {
     return Promise.reject("Server Error");
   }
-  if (response.response.status > 400) {
-    const error = response.data.data;
+  if (response.response.status >= 400) {
+    const error = response;
 
     if (error.response && error.response.data) {
       let errorkey = Object.keys(error.response.data)[0];
